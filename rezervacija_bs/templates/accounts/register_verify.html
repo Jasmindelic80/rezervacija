@@ -1,0 +1,98 @@
+
+<!-- ============================================================ -->
+<!-- templates/accounts/register_verify.html  — Korak 2 OTP      -->
+<!-- ============================================================ -->
+{% comment %}
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Verifikacija broja{% endblock %}
+{% block extra_css %}
+<style>
+  /* ... isti stilovi kao gore ... */
+  .otp-input {
+    letter-spacing: 0.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    padding: 1rem;
+  }
+  .otp-input:focus {
+    border-color: #1a6b4a;
+    box-shadow: 0 0 0 3px rgba(26,107,74,0.1);
+  }
+  .resend-timer { color: #6b7280; font-size: 0.875rem; }
+  .resend-link { color: #1a6b4a; font-weight: 600; cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+      <span class="logo-icon">📱</span>
+      <h1>Verifikacija</h1>
+      <p>Kod poslan na <strong>{{ phone }}</strong></p>
+    </div>
+
+    <div class="steps-dots">
+      <span class="done">✓</span>
+      <span class="active"></span>
+      <span></span>
+    </div>
+
+    {% if messages %}...{% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-4">
+        <label class="form-label text-center d-block">Unesite 6-cifreni kod</label>
+        <input type="text" name="otp" class="otp-input form-control"
+               inputmode="numeric" autocomplete="one-time-code"
+               maxlength="6" placeholder="000000" autofocus required>
+      </div>
+
+      <button type="submit" class="btn-auth">Verificiraj →</button>
+    </form>
+
+    <div class="text-center mt-3">
+      <span class="resend-timer" id="timer-text">
+        Niste dobili kod? Pošalji ponovo za <span id="countdown">60</span>s
+      </span>
+      <form method="post" action="{% url 'resend_otp' %}" id="resend-form" style="display:none">
+        {% csrf_token %}
+        <button type="submit" class="resend-link btn btn-link p-0">
+          Pošalji ponovo
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  let seconds = 60;
+  const countdown = document.getElementById('countdown');
+  const timerText = document.getElementById('timer-text');
+  const resendForm = document.getElementById('resend-form');
+
+  const timer = setInterval(() => {
+    seconds--;
+    countdown.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      timerText.style.display = 'none';
+      resendForm.style.display = 'block';
+    }
+  }, 1000);
+
+  // Auto-submit kad se unese 6 cifara
+  document.querySelector('.otp-input').addEventListener('input', function() {
+    if (this.value.length === 6) {
+      this.closest('form').submit();
+    }
+  });
+</script>
+{% endblock %}
+{% endcomment %}

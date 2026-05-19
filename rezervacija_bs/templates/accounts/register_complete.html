@@ -1,0 +1,50 @@
+
+<!-- ============================================================ -->
+<!-- templates/accounts/register_complete.html  — Korak 3 Profil -->
+<!-- ============================================================ -->
+{% comment %}
+{% extends 'base.html' %}
+{% block title %}Dopunite profil{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon">✅</span>
+      <h1>Broj verificiran!</h1>
+      <p>Dopunite podatke za nalog</p>
+    </div>
+
+    <div class="steps-dots">
+      <span>✓</span><span>✓</span><span class="active"></span>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label">Ime</label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-6">
+          <label class="form-label">Prezime</label>
+          {{ form.last_name }}
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email (opciono)</label>
+        {{ form.email }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Lozinka</label>
+        {{ form.password }}
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Potvrda lozinke</label>
+        {{ form.password_confirm }}
+      </div>
+      <button type="submit" class="btn-auth">Kreiraj nalog ✓</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% endcomment %}

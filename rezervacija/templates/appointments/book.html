@@ -1,0 +1,597 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment — {{ business.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --primary: #1a6b4a;
+    --primary-light: #e8f5ee;
+    --accent: #f4a423;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+  }
+
+  body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); }
+
+  .booking-hero {
+    background: linear-gradient(135deg, var(--primary) 0%, #0f4a32 100%);
+    color: white;
+    padding: 2rem 0;
+  }
+
+  .booking-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+  }
+  .step-indicator .step {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem;
+    background: #f3f4f6;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    position: relative;
+  }
+  .step-indicator .step.active {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .step-indicator .step.done {
+    background: var(--primary);
+    color: white;
+  }
+  .step-indicator .step:first-child { border-radius: 8px 0 0 8px; }
+  .step-indicator .step:last-child { border-radius: 0 8px 8px 0; }
+
+  /* Service Selection */
+  .service-card {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .service-card:hover { border-color: var(--primary); background: var(--primary-light); }
+  .service-card.selected { border-color: var(--primary); background: var(--primary-light); }
+  .service-card .duration { color: var(--muted); font-size: 0.85rem; }
+  .service-card .price { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+
+  /* Staff Selection */
+  .staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+  }
+  .staff-card {
+    text-align: center;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .staff-card:hover, .staff-card.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  .staff-card img {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+  }
+  .staff-card .staff-avatar-placeholder {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 0.5rem;
+  }
+  .staff-card .staff-name { font-size: 0.85rem; font-weight: 600; }
+  .staff-card .staff-title { font-size: 0.75rem; color: var(--muted); }
+
+  /* Date Picker */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+  }
+  .cal-header { font-size: 0.75rem; font-weight: 600; color: var(--muted); padding: 0.25rem; }
+  .cal-day {
+    padding: 0.5rem 0.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+    border: 2px solid transparent;
+  }
+  .cal-day:hover:not(.disabled) { background: var(--primary-light); border-color: var(--primary); }
+  .cal-day.selected { background: var(--primary); color: white; }
+  .cal-day.today { font-weight: 700; }
+  .cal-day.disabled { color: #ccc; cursor: not-allowed; }
+  .cal-day.has-slots { position: relative; }
+  .cal-day.has-slots::after {
+    content: '';
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: absolute;
+    bottom: 3px; left: 50%; transform: translateX(-50%);
+  }
+
+  /* Time Slots */
+  .slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+  }
+  .time-slot {
+    padding: 0.6rem;
+    text-align: center;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .time-slot:hover { border-color: var(--primary); background: var(--primary-light); }
+  .time-slot.selected { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* Booking Summary */
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-item:last-child { border-bottom: none; }
+  .summary-item .label { color: var(--muted); font-size: 0.9rem; }
+  .summary-item .value { font-weight: 600; }
+
+  .btn-primary-bih {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  .btn-primary-bih:hover { background: #0f4a32; }
+  .btn-primary-bih:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  .alert-info {
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 8px; padding: 0.75rem 1rem;
+    color: #1e40af; font-size: 0.875rem;
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="booking-hero">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3">
+      {% if business.logo %}
+        <img src="{{ business.logo.url }}" alt="{{ business.name }}" 
+             style="width:60px;height:60px;border-radius:12px;object-fit:cover;">
+      {% endif %}
+      <div>
+        <h1 class="h4 mb-0 fw-bold">{{ business.name }}</h1>
+        <p class="mb-0 opacity-75 small">📍 {{ business.address }}, {{ business.city }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }} mb-3">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Step Indicator -->
+  <div class="step-indicator mb-4">
+    <div class="step active" id="step-1-indicator">1. Service</div>
+    <div class="step" id="step-2-indicator">2. Staff</div>
+    <div class="step" id="step-3-indicator">3. Date & Time</div>
+    <div class="step" id="step-4-indicator">4. Confirm</div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+
+      <!-- STEP 1: Service -->
+      <div class="booking-card" id="step-1">
+        <div class="section-title">Choose a service</div>
+        {% for service in services %}
+        <div class="service-card" 
+             onclick="selectService('{{ service.id }}', '{{ service.name }}', '{{ service.duration_minutes }}', '{{ service.price_display }}')"
+             data-id="{{ service.id }}">
+          <div>
+            <div class="fw-600">{{ service.name }}</div>
+            <div class="duration">⏱ {{ service.duration_minutes }} min</div>
+            {% if service.description %}<div class="text-muted small">{{ service.description }}</div>{% endif %}
+          </div>
+          <div class="price">{{ service.price_display }}</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- STEP 2: Staff -->
+      <div class="booking-card" id="step-2" style="display:none">
+        <div class="section-title">Choose a staff member <span class="text-muted fw-normal">(optional)</span></div>
+        <div class="staff-grid">
+          <!-- "Bilo koji" opcija -->
+          <div class="staff-card selected" onclick="selectStaff('any', 'Any available')" id="staff-any">
+            <div class="staff-avatar-placeholder">🎲</div>
+            <div class="staff-name">Anyone</div>
+            <div class="staff-title">available</div>
+          </div>
+          {% for member in staff_list %}
+          <div class="staff-card" onclick="selectStaff('{{ member.id }}', '{{ member.name }}')" id="staff-{{ member.id }}">
+            {% if member.photo %}
+              <img src="{{ member.photo.url }}" alt="{{ member.name }}">
+            {% else %}
+              <div class="staff-avatar-placeholder">{{ member.name|first }}</div>
+            {% endif %}
+            <div class="staff-name">{{ member.name }}</div>
+            {% if member.title %}<div class="staff-title">{{ member.title }}</div>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <button class="btn btn-outline-secondary mt-3" onclick="prevStep(2)">← Back</button>
+        <button class="btn btn-success mt-3 ms-2" onclick="nextStep(2)">Next →</button>
+      </div>
+
+      <!-- STEP 3: Date & Time -->
+      <div class="booking-card" id="step-3" style="display:none">
+        <div class="section-title">Choose a date</div>
+        
+        <!-- Month Navigation -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(-1)">‹</button>
+          <strong id="calendar-month-label"></strong>
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(1)">›</button>
+        </div>
+        
+        <div class="calendar-grid mb-3">
+          <div class="cal-header">Mon</div>
+          <div class="cal-header">Tue</div>
+          <div class="cal-header">Wed</div>
+          <div class="cal-header">Thu</div>
+          <div class="cal-header">Fri</div>
+          <div class="cal-header">Sat</div>
+          <div class="cal-header">Sun</div>
+          <!-- Days injected by JS -->
+          <div id="calendar-days"></div>
+        </div>
+
+        <div id="time-section" style="display:none">
+          <div class="section-title mt-3">Available Slots</div>
+          <div id="slots-container">
+            <div class="text-muted text-center p-3">
+              <span class="loading-spinner" style="border-color: rgba(0,0,0,.2); border-top-color: var(--primary)"></span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-outline-secondary mt-3" onclick="prevStep(3)">← Back</button>
+      </div>
+
+      <!-- STEP 4: Confirm -->
+      <div class="booking-card" id="step-4" style="display:none">
+        <div class="section-title">Booking Confirmation</div>
+
+        <div class="summary-item">
+          <span class="label">Service</span>
+          <span class="value" id="summary-service">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Staff</span>
+          <span class="value" id="summary-staff">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Date</span>
+          <span class="value" id="summary-date">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Time</span>
+          <span class="value" id="summary-time">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Duration</span>
+          <span class="value" id="summary-duration">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Price</span>
+          <span class="value text-success fw-bold" id="summary-price">—</span>
+        </div>
+
+        <form method="post" action="{% url 'book' business.slug %}">
+          {% csrf_token %}
+          <input type="hidden" name="service_id" id="form-service-id">
+          <input type="hidden" name="staff_id" id="form-staff-id">
+          <input type="hidden" name="date" id="form-date">
+          <input type="hidden" name="time" id="form-time">
+          
+          <div class="mb-3 mt-3">
+            <label class="form-label fw-600">Notes (optional)</label>
+            <textarea name="notes" class="form-control" rows="2"
+                      placeholder="e.g. Allergy to certain products..."></textarea>
+          </div>
+          
+          <div class="alert-info mb-3">
+            ℹ️ By booking you accept the salon's cancellation policy.
+            You can cancel up to 2 hours in advance.
+          </div>
+          
+          <button type="button" class="btn btn-outline-secondary me-2" onclick="prevStep(4)">← Back</button>
+          <button type="submit" class="btn-primary-bih" style="width:auto;padding:.875rem 2rem">
+            ✓ Confirm Booking
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <div class="booking-card position-sticky" style="top: 1rem">
+        <div class="section-title">{{ business.name }}</div>
+        <p class="text-muted small mb-2">📍 {{ business.address }}, {{ business.city }}</p>
+        <p class="small mb-2">📞 <a href="tel:{{ business.phone }}">{{ business.phone }}</a></p>
+        {% if business.average_rating %}
+        <p class="small mb-0">
+          ⭐ {{ business.average_rating|floatformat:1 }} 
+          ({{ business.review_count }} ocjena)
+        </p>
+        {% endif %}
+        <hr>
+        <div class="text-muted small" id="mini-summary">
+          Follow the steps to book your appointment.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// State
+const state = {
+  currentStep: 1,
+  serviceId: null,
+  serviceName: null,
+  serviceDuration: null,
+  servicePrice: null,
+  staffId: 'any',
+  staffName: 'Any available',
+  selectedDate: null,
+  selectedTime: null,
+  calendarDate: new Date(),
+};
+
+const BUSINESS_ID = "{{ business.id }}";
+const SLOTS_API = "{% url 'slots_api' %}";
+
+// Step management
+function showStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById(`step-${i}`).style.display = i === n ? 'block' : 'none';
+    const ind = document.getElementById(`step-${i}-indicator`);
+    ind.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+  state.currentStep = n;
+  updateMiniSummary();
+}
+
+function nextStep(from) { showStep(from + 1); }
+function prevStep(from) { showStep(from - 1); }
+
+// Service selection
+function selectService(id, name, duration, price) {
+  state.serviceId = id;
+  state.serviceName = name;
+  state.serviceDuration = duration;
+  state.servicePrice = price;
+
+  document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`.service-card[data-id="${id}"]`).classList.add('selected');
+
+  setTimeout(() => showStep(2), 200);
+}
+
+// Staff selection
+function selectStaff(id, name) {
+  state.staffId = id;
+  state.staffName = name;
+  document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById(`staff-${id}`).classList.add('selected');
+}
+
+// Calendar
+const MONTHS_BS = ['January','February','March','April','May','June',
+                   'July','August','September','October','November','December'];
+
+function renderCalendar() {
+  const d = state.calendarDate;
+  const year = d.getFullYear();
+  const month = d.getMonth();
+
+  document.getElementById('calendar-month-label').textContent =
+    `${MONTHS_BS[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  
+  // Monday-first: convert Sunday(0) to 6, others -1
+  let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+  let html = '';
+  // Empty cells
+  for (let i = 0; i < startOffset; i++) {
+    html += '<div></div>';
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const thisDate = new Date(year, month, day);
+    const isToday = thisDate.getTime() === today.getTime();
+    const isPast = thisDate < today;
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isSelected = state.selectedDate === dateStr;
+    
+    let cls = 'cal-day';
+    if (isPast) cls += ' disabled';
+    if (isToday) cls += ' today';
+    if (isSelected) cls += ' selected';
+
+    if (!isPast) {
+      html += `<div class="${cls}" onclick="selectDate('${dateStr}')">${day}</div>`;
+    } else {
+      html += `<div class="${cls}">${day}</div>`;
+    }
+  }
+
+  document.getElementById('calendar-days').innerHTML = html;
+}
+
+function changeMonth(delta) {
+  state.calendarDate.setMonth(state.calendarDate.getMonth() + delta);
+  renderCalendar();
+}
+
+async function selectDate(dateStr) {
+  state.selectedDate = dateStr;
+  state.selectedTime = null;
+  renderCalendar();
+
+  // Show time section with loader
+  document.getElementById('time-section').style.display = 'block';
+  document.getElementById('slots-container').innerHTML = `
+    <div class="text-center p-3 text-muted">
+      <div style="display:inline-block;width:24px;height:24px;border:3px solid #e5e7eb;
+                  border-top-color:#1a6b4a;border-radius:50%;animation:spin .8s linear infinite"></div>
+      <div class="mt-2">Loading available slots...</div>
+    </div>`;
+
+  try {
+    const params = new URLSearchParams({
+      business_id: BUSINESS_ID,
+      service_id: state.serviceId,
+      staff_id: state.staffId,
+      date: dateStr,
+    });
+    const resp = await fetch(`${SLOTS_API}?${params}`);
+    const data = await resp.json();
+
+    if (data.slots && data.slots.length > 0) {
+      let html = '<div class="slots-grid">';
+      data.slots.forEach(slot => {
+        html += `<div class="time-slot" onclick="selectTime('${slot}')">${slot}</div>`;
+      });
+      html += '</div>';
+      document.getElementById('slots-container').innerHTML = html;
+    } else {
+      document.getElementById('slots-container').innerHTML =
+        '<div class="alert-info">No available slots for this day. Please choose another date.</div>';
+    }
+  } catch (e) {
+    document.getElementById('slots-container').innerHTML =
+      '<div class="text-danger">Error loading slots. Please try again.</div>';
+  }
+}
+
+function selectTime(time) {
+  state.selectedTime = time;
+  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+  event.target.classList.add('selected');
+  
+  // Auto-advance to step 4
+  setTimeout(() => {
+    updateConfirmStep();
+    showStep(4);
+  }, 300);
+}
+
+function updateConfirmStep() {
+  document.getElementById('summary-service').textContent = state.serviceName;
+  document.getElementById('summary-staff').textContent = state.staffName;
+  document.getElementById('summary-date').textContent = formatDate(state.selectedDate);
+  document.getElementById('summary-time').textContent = state.selectedTime;
+  document.getElementById('summary-duration').textContent = `${state.serviceDuration} minutes`;
+  document.getElementById('summary-price').textContent = state.servicePrice;
+  
+  document.getElementById('form-service-id').value = state.serviceId;
+  document.getElementById('form-staff-id').value = state.staffId;
+  document.getElementById('form-date').value = state.selectedDate;
+  document.getElementById('form-time').value = state.selectedTime;
+}
+
+function updateMiniSummary() {
+  let html = '';
+  if (state.serviceName) html += `<div>✂️ <strong>${state.serviceName}</strong></div>`;
+  if (state.staffId !== 'any') html += `<div>👤 ${state.staffName}</div>`;
+  if (state.selectedDate) html += `<div>📅 ${formatDate(state.selectedDate)}</div>`;
+  if (state.selectedTime) html += `<div>🕐 ${state.selectedTime}</div>`;
+  document.getElementById('mini-summary').innerHTML = html || 'Follow the steps to book your appointment.';
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+// Init
+renderCalendar();
+showStep(1);
+</script>
+{% endblock %}

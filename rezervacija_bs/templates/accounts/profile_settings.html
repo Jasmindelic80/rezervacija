@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Postavke profila{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:560px">
+  <h1 class="h3 fw-bold mb-4">⚙️ Postavke profila</h1>
+
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-success">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" class="card p-4 shadow-sm rounded-4">
+    {% csrf_token %}
+    <div class="row g-3">
+      <div class="col-6">
+        <label class="form-label fw-bold">Ime</label>
+        <input type="text" name="first_name" class="form-control"
+               value="{{ user.first_name }}">
+      </div>
+      <div class="col-6">
+        <label class="form-label fw-bold">Prezime</label>
+        <input type="text" name="last_name" class="form-control"
+               value="{{ user.last_name }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-bold">Email</label>
+        <input type="email" name="email" class="form-control"
+               value="{{ user.email }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-bold">Grad</label>
+        <input type="text" name="city" class="form-control"
+               value="{{ user.city }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-bold">Telefon</label>
+        <input type="text" class="form-control"
+               value="{{ user.phone|default:'' }}" disabled>
+        <div class="text-muted small mt-1">Broj telefona se ne može mijenjati</div>
+      </div>
+    </div>
+    <button type="submit" class="btn w-100 fw-bold text-white mt-4"
+            style="background:#1a6b4a;border-radius:10px;padding:.875rem">
+      Sačuvaj izmjene
+    </button>
+  </form>
+</div>
+{% endblock %}

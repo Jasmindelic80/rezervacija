@@ -1,0 +1,75 @@
+version: '3.9'
+
+services:
+
+  # ── Django Web App ─────────────────────────────
+  web:
+    build: .
+    container_name: rezervisi_web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py loaddata fixtures/categories_bih.json || true &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --reload"
+    volumes:
+      - .:/app
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  # ── PostgreSQL Baza ────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: rezervisi_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: rezervisi_bih
+      POSTGRES_USER: rezervisi_user
+      POSTGRES_PASSWORD: rezervisi_pass
+    restart: unless-stopped
+
+  # ── Redis (za Celery) ──────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: rezervisi_redis
+    restart: unless-stopped
+
+  # ── Celery Worker (notifikacije) ───────────────
+  celery:
+    build: .
+    container_name: rezervisi_celery
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  # ── Celery Beat (podsjetnici) ──────────────────
+  celery_beat:
+    build: .
+    container_name: rezervisi_beat
+    command: celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    env_file:
+      - .env.docker
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  media_data:
+  static_data:

@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Postavke notifikacija{% endblock %}
+
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+  :root {
+    --green: #1a6b4a;
+    --green-light: #e8f5ee;
+    --viber: #7360f2;
+    --viber-light: #f0eeff;
+    --whatsapp: #25d366;
+    --whatsapp-light: #e8fdf2;
+    --sms: #f59e0b;
+    --sms-light: #fffbeb;
+  }
+  body { font-family: 'Sora', sans-serif; background: #f8faf9; }
+
+  .settings-wrap { max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+
+  .page-title {
+    font-size: 1.5rem; font-weight: 800;
+    margin-bottom: 0.25rem; color: #111;
+  }
+  .page-subtitle { color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem; }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    margin-bottom: 1.25rem;
+  }
+  .card-title {
+    font-size: 0.8rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: #9ca3af; margin-bottom: 1rem;
+  }
+
+  /* Channel cards */
+  .channel-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .channel-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .channel-card input[type="radio"] {
+    position: absolute; opacity: 0; width: 0; height: 0;
+  }
+  .channel-card .ch-icon { font-size: 2rem; display: block; margin-bottom: 0.4rem; }
+  .channel-card .ch-name { font-size: 0.85rem; font-weight: 700; }
+  .channel-card .ch-desc { font-size: 0.7rem; color: #6b7280; margin-top: 0.15rem; }
+
+  .channel-card.viber:hover,
+  .channel-card.viber.selected { border-color: var(--viber); background: var(--viber-light); }
+  .channel-card.viber.selected .ch-name { color: var(--viber); }
+
+  .channel-card.whatsapp:hover,
+  .channel-card.whatsapp.selected { border-color: var(--whatsapp); background: var(--whatsapp-light); }
+  .channel-card.whatsapp.selected .ch-name { color: #128c4f; }
+
+  .channel-card.sms:hover,
+  .channel-card.sms.selected { border-color: var(--sms); background: var(--sms-light); }
+  .channel-card.sms.selected .ch-name { color: #d97706; }
+
+  .channel-card .check-badge {
+    position: absolute; top: -6px; right: -6px;
+    width: 20px; height: 20px;
+    background: var(--green); color: white;
+    border-radius: 50%; font-size: 11px;
+    display: none; align-items: center; justify-content: center;
+  }
+  .channel-card.selected .check-badge { display: flex; }
+
+  /* Availability badge */
+  .avail-badge {
+    font-size: 0.7rem; padding: 2px 6px;
+    border-radius: 4px; margin-top: 4px;
+    display: inline-block;
+  }
+  .avail-yes { background: #dcfce7; color: #166534; }
+  .avail-no  { background: #fee2e2; color: #991b1b; }
+
+  /* Toggle switches */
+  .toggle-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-info .t-label { font-size: 0.9rem; font-weight: 600; }
+  .toggle-info .t-desc { font-size: 0.8rem; color: #6b7280; }
+
+  .toggle {
+    position: relative; width: 48px; height: 26px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: #e5e7eb; border-radius: 13px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    left: 3px; top: 3px;
+    background: white; border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--green); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+  /* Fallback info */
+  .fallback-info {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 10px;
+    padding: 0.875rem 1rem;
+    font-size: 0.82rem;
+    color: #0369a1;
+  }
+  .fallback-chain {
+    display: flex; align-items: center;
+    gap: 6px; flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .fc-step {
+    background: white; border: 1px solid #bae6fd;
+    border-radius: 6px; padding: 3px 8px;
+    font-size: 0.78rem; font-weight: 600;
+  }
+  .fc-arrow { color: #0369a1; }
+
+  .btn-save {
+    background: var(--green); color: white;
+    border: none; border-radius: 12px;
+    padding: 0.875rem 2rem;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; width: 100%;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+  }
+  .btn-save:hover { background: #0f4a32; }
+
+  .success-toast {
+    position: fixed; bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1a6b4a; color: white;
+    padding: 0.75rem 1.5rem; border-radius: 10px;
+    font-weight: 600; font-size: 0.9rem;
+    transition: transform 0.3s; z-index: 999;
+  }
+  .success-toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-wrap">
+  <h1 class="page-title">📬 Notifikacije</h1>
+  <p class="page-subtitle">Odaberite kako želite primati obavijesti o terminima</p>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Kanal -->
+    <div class="card">
+      <div class="card-title">Preferirani kanal</div>
+      <div class="channel-cards">
+
+        <label class="channel-card viber {% if prefs.preferred_channel == 'viber' %}selected{% endif %}"
+               id="card-viber">
+          <input type="radio" name="preferred_channel" value="viber"
+                 {% if prefs.preferred_channel == 'viber' %}checked{% endif %}>
+          <div class="check-badge">✓</div>
+          <span class="ch-icon">💜</span>
+          <div class="ch-name">Viber</div>
+          <div class="ch-desc">Preporučeno za BiH</div>
+          {% if prefs.viber_available %}
+            <span class="avail-badge avail-yes">✓ Aktivan</span>
+          {% else %}
+            <span class="avail-badge avail-no">Nije verificiran</span>
+          {% endif %}
+        </label>
+
+        <label class="channel-card whatsapp {% if prefs.preferred_channel == 'whatsapp' %}selected{% endif %}"
+               id="card-whatsapp">
+          <input type="radio" name="preferred_channel" value="whatsapp"
+                 {% if prefs.preferred_channel == 'whatsapp' %}checked{% endif %}>
+          <div class="check-badge">✓</div>
+          <span class="ch-icon">💚</span>
+          <div class="ch-name">WhatsApp</div>
+          <div class="ch-desc">Globalno popularan</div>
+          {% if prefs.whatsapp_available %}
+            <span class="avail-badge avail-yes">✓ Aktivan</span>
+          {% else %}
+            <span class="avail-badge avail-no">Nije verificiran</span>
+          {% endif %}
+        </label>
+
+        <label class="channel-card sms {% if prefs.preferred_channel == 'sms' %}selected{% endif %}"
+               id="card-sms">
+          <input type="radio" name="preferred_channel" value="sms"
+                 {% if prefs.preferred_channel == 'sms' %}checked{% endif %}>
+          <div class="check-badge">✓</div>
+          <span class="ch-icon">📱</span>
+          <div class="ch-name">SMS</div>
+          <div class="ch-desc">Uvijek dostupan</div>
+          <span class="avail-badge avail-yes">✓ Uvijek radi</span>
+        </label>
+
+      </div>
+
+      <!-- Fallback chain info -->
+      <div class="fallback-info mt-3">
+        <strong>Automatski fallback:</strong> ako preferred kanal ne funkcioniše,
+        poruka se šalje sljedećim kanalom.
+        <div class="fallback-chain" id="fallback-chain">
+          <span class="fc-step" id="fc-1">💜 Viber</span>
+          <span class="fc-arrow">→</span>
+          <span class="fc-step" id="fc-2">💚 WhatsApp</span>
+          <span class="fc-arrow">→</span>
+          <span class="fc-step">📱 SMS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Šta primati -->
+    <div class="card">
+      <div class="card-title">Tipovi notifikacija</div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="t-label">✅ Potvrda rezervacije</div>
+          <div class="t-desc">Odmah nakon što rezervišete termin</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="receive_confirmation"
+                 {% if prefs.receive_confirmation %}checked{% endif %}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="t-label">⏰ Podsjetnik 24 sata ranije</div>
+          <div class="t-desc">Dan prije termina</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="receive_reminder_24h"
+                 {% if prefs.receive_reminder_24h %}checked{% endif %}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="t-label">🔔 Podsjetnik 2 sata ranije</div>
+          <div class="t-desc">Kratko prije termina</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="receive_reminder_2h"
+                 {% if prefs.receive_reminder_2h %}checked{% endif %}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="t-label">❌ Obavijest o otkazivanju</div>
+          <div class="t-desc">Kada biznis otkaže vaš termin</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" name="receive_cancellation"
+                 {% if prefs.receive_cancellation %}checked{% endif %}>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+    </div>
+
+    <button type="submit" class="btn-save">Sačuvaj postavke</button>
+  </form>
+</div>
+
+<div class="success-toast" id="toast">✓ Postavke sačuvane!</div>
+
+<script>
+  // Channel card selection
+  document.querySelectorAll('.channel-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.channel-card').forEach(c => {
+        c.classList.remove('selected');
+      });
+      card.classList.add('selected');
+      card.querySelector('input').checked = true;
+      updateFallbackChain(card.querySelector('input').value);
+    });
+  });
+
+  function updateFallbackChain(preferred) {
+    const all = [
+      { id: 'viber',     icon: '💜', label: 'Viber' },
+      { id: 'whatsapp',  icon: '💚', label: 'WhatsApp' },
+      { id: 'sms',       icon: '📱', label: 'SMS' },
+    ];
+    const ordered = [
+      all.find(c => c.id === preferred),
+      ...all.filter(c => c.id !== preferred)
+    ];
+
+    const chain = document.getElementById('fallback-chain');
+    chain.innerHTML = ordered.map((c, i) => {
+      const arrow = i < ordered.length - 1 ? '<span class="fc-arrow">→</span>' : '';
+      return `<span class="fc-step">${c.icon} ${c.label}</span>${arrow}`;
+    }).join('');
+  }
+
+  // Show toast on success
+  {% if messages %}
+    {% for msg in messages %}
+      {% if 'sačuvane' in msg.message|lower %}
+        document.addEventListener('DOMContentLoaded', () => {
+          const toast = document.getElementById('toast');
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 3000);
+        });
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,222 @@
+[
+  {
+    "model": "businesses.category",
+    "pk": 1,
+    "fields": {
+      "name": "Frizeri i barberi",
+      "slug": "frizeri",
+      "icon": "✂️",
+      "description": "Muški i ženski frizerski saloni, barbershopi",
+      "order": 1
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 2,
+    "fields": {
+      "name": "Kozmetički saloni",
+      "slug": "kozmetika",
+      "icon": "💅",
+      "description": "Manikir, pedikir, depilacija, njega lica",
+      "order": 2
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 3,
+    "fields": {
+      "name": "Masaže i wellness",
+      "slug": "masaze",
+      "icon": "💆",
+      "description": "Masaže, spa tretmani, saune, wellness centri",
+      "order": 3
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 4,
+    "fields": {
+      "name": "Stomatološke ordinacije",
+      "slug": "stomatolog",
+      "icon": "🦷",
+      "description": "Privatni stomatolozi, zubne proteze, ortodoncija",
+      "order": 4
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 5,
+    "fields": {
+      "name": "Privatne ordinacije",
+      "slug": "ordinacije",
+      "icon": "👨‍⚕️",
+      "description": "Opća praksa, specijalisti, laboratorije",
+      "order": 5
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 6,
+    "fields": {
+      "name": "Automehaničari",
+      "slug": "automehanicari",
+      "icon": "🚗",
+      "description": "Mehanički servisi, vulkanizeri, auto-električari, limar-farbari",
+      "order": 6
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 7,
+    "fields": {
+      "name": "Veterinari",
+      "slug": "veterinari",
+      "icon": "🐾",
+      "description": "Veterinarske ordinacije, njega kućnih ljubimaca, grooming",
+      "order": 7
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 8,
+    "fields": {
+      "name": "Privatni instruktori",
+      "slug": "instruktori",
+      "icon": "📚",
+      "description": "Instrukcije iz matematike, jezika, muzike, sportski treneri",
+      "order": 8
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 9,
+    "fields": {
+      "name": "Personal treneri",
+      "slug": "treneri",
+      "icon": "🏋️",
+      "description": "Fitnes, yoga, pilates, individualni treninzi",
+      "order": 9
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 10,
+    "fields": {
+      "name": "Majstori i servisi",
+      "slug": "majstori",
+      "icon": "🔧",
+      "description": "Vodoinstalateri, electricari, stolari, krovopokrivači",
+      "order": 10
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 11,
+    "fields": {
+      "name": "Fotografija i video",
+      "slug": "fotografija",
+      "icon": "📸",
+      "description": "Fotografi, videografi, fotostudiji",
+      "order": 11
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 12,
+    "fields": {
+      "name": "Notari i advokati",
+      "slug": "pravne-usluge",
+      "icon": "⚖️",
+      "description": "Notarijati, advokatske kancelarije, pravne savjetodavne usluge",
+      "order": 12
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 13,
+    "fields": {
+      "name": "Računovođe i revizori",
+      "slug": "racunovodstvo",
+      "icon": "📊",
+      "description": "Računovodstvene agencije, porezni savjetnici",
+      "order": 13
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 14,
+    "fields": {
+      "name": "Prijevod i lektor",
+      "slug": "prijevod",
+      "icon": "🌐",
+      "description": "Prevodilačke agencije, sudski tumači, lektorisanje",
+      "order": 14
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 15,
+    "fields": {
+      "name": "IT i web usluge",
+      "slug": "it-usluge",
+      "icon": "💻",
+      "description": "Popravka računara, web dizajn, IT konsultacije",
+      "order": 15
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 16,
+    "fields": {
+      "name": "Čišćenje i održavanje",
+      "slug": "ciscenje",
+      "icon": "🧹",
+      "description": "Čišćenje stanova i poslovnih prostora, perilnice",
+      "order": 16
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 17,
+    "fields": {
+      "name": "Krojači i kožar",
+      "slug": "krojaci",
+      "icon": "🧵",
+      "description": "Krojački ateliei, popravka odjeće, cipelare",
+      "order": 17
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 18,
+    "fields": {
+      "name": "Optičari",
+      "slug": "opticari",
+      "icon": "👓",
+      "description": "Optičke radnje, pregled vida, kontaktne leće",
+      "order": 18
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 19,
+    "fields": {
+      "name": "Tatoo i piercing",
+      "slug": "tatoo",
+      "icon": "🎨",
+      "description": "Tattoo studiji, piercing, trajna šminka (PMU)",
+      "order": 19
+    }
+  },
+  {
+    "model": "businesses.category",
+    "pk": 20,
+    "fields": {
+      "name": "Frizerski saloni za pse",
+      "slug": "grooming",
+      "icon": "🐕",
+      "description": "Grooming pasa i mačaka, kupanje, šišanje ljubimaca",
+      "order": 20
+    }
+  }
+]
