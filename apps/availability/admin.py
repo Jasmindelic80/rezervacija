@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import WorkingHours, BlockedSlot
 
-# Register your models here.
+admin.site.register(WorkingHours)
+admin.site.register(BlockedSlot)

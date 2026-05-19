@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}{{ business.name }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-lg-8">
+      <h1 class="fw-bold">{{ business.name }}</h1>
+      <p class="text-muted">📍 {{ business.address }}, {{ business.city }}</p>
+      <p class="text-muted">📞 {{ business.phone }}</p>
+      {% if business.description %}
+        <p>{{ business.description }}</p>
+      {% endif %}
+
+      <h4 class="mt-4 fw-bold">Usluge</h4>
+      {% for service in services %}
+      <div class="card mb-2 p-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <strong>{{ service.name }}</strong>
+            <div class="text-muted small">⏱ {{ service.duration_minutes }} min</div>
+          </div>
+          <div class="fw-bold text-success">{{ service.price }} KM</div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <a href="{% url 'book' business.slug %}" 
+         class="btn mt-3 text-white fw-bold w-100"
+         style="background:#1a6b4a;border-radius:10px;padding:.875rem">
+        📅 Rezerviši termin
+      </a>
+    </div>
+
+    <div class="col-lg-4 mt-4 mt-lg-0">
+      <div class="card p-3">
+        <h5 class="fw-bold">Radno vrijeme</h5>
+        {% for wh in business.working_hours.all %}
+        <div class="d-flex justify-content-between">
+          <span>{{ wh.get_day_of_week_display }}</span>
+          <span>
+            {% if wh.is_closed %}Zatvoreno
+            {% else %}{{ wh.open_time|time:"H:i" }} — {{ wh.close_time|time:"H:i" }}
+            {% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if staff %}
+      <div class="card p-3 mt-3">
+        <h5 class="fw-bold">Tim</h5>
+        {% for member in staff %}
+        <div class="mb-2">
+          <strong>{{ member.name }}</strong>
+          {% if member.title %}<div class="text-muted small">{{ member.title }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
