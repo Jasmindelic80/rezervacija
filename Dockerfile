@@ -31,4 +31,4 @@ RUN python manage.py collectstatic --noinput || true
 EXPOSE 8000
 
 # Pokretanje
-CMD ["sh", "-c", "python manage.py migrate && python manage.py create_admin && python manage.py loaddata fixtures/categories_bih.json || true && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2"]
+CMD ["sh", "-c", "python manage.py migrate && python manage.py create_default_admin && python manage.py loaddata fixtures/categories_bih.json || true && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2"]
