@@ -95,13 +95,10 @@
       {% csrf_token %}
 
       <div class="mb-3">
-        <label class="form-label">Broj telefona</label>
-        <div class="d-flex">
-          <div class="phone-prefix">🇧🇦 +387</div>
-          <input type="tel" name="phone" class="form-control phone-input"
-                 placeholder="61 123 456" inputmode="tel"
-                 value="{{ phone|default:'' }}" required autofocus>
-        </div>
+        <label class="form-label">Username ili broj telefona</label>
+        <input type="text" name="phone" class="form-control"
+               placeholder="npr. jasmin123 ili 061 123 456"
+               value="{{ phone|default:'' }}" required autofocus>
       </div>
 
       <div class="mb-3">
