@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% block title %}Registracija — RezervišiBiH{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #f8faf9; }
+  .auth-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .auth-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 460px;
+  }
+  .auth-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .auth-logo .logo-icon { font-size: 3rem; display: block; }
+  .auth-logo h1 { font-size: 1.5rem; font-weight: 800; color: #1a6b4a; margin: 0.5rem 0 0.25rem; }
+  .auth-logo p { color: #6b7280; font-size: 0.9rem; margin: 0; }
+
+  .form-label { font-weight: 600; font-size: 0.9rem; color: #374151; }
+  .form-control {
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+  .form-control:focus {
+    border-color: #1a6b4a;
+    box-shadow: 0 0 0 3px rgba(26,107,74,0.1);
+    outline: none;
+  }
+  .btn-auth {
+    background: #1a6b4a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.875rem;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+  }
+  .btn-auth:hover { background: #0f4a32; }
+
+  .role-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .role-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .role-card input[type="radio"] { display: none; }
+  .role-card.selected { border-color: #1a6b4a; background: #e8f5ee; }
+  .role-card .icon { font-size: 1.75rem; display: block; margin-bottom: 0.25rem; }
+  .role-card .label { font-size: 0.85rem; font-weight: 700; }
+  .role-card .sublabel { font-size: 0.75rem; color: #6b7280; }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  .auth-footer a { color: #1a6b4a; font-weight: 600; text-decoration: none; }
+
+  .optional-badge {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon">📅</span>
+      <h1>RezervišiBiH</h1>
+      <p>Kreirajte besplatan nalog</p>
+    </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} rounded-3 mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Tip korisnika -->
+      <div class="mb-3">
+        <label class="form-label">Ja sam...</label>
+        <div class="role-cards">
+          <label class="role-card selected" id="role-client">
+            <input type="radio" name="role" value="client" checked>
+            <span class="icon">🙋</span>
+            <div class="label">Klijent</div>
+            <div class="sublabel">Tražim usluge</div>
+          </label>
+          <label class="role-card" id="role-provider">
+            <input type="radio" name="role" value="provider">
+            <span class="icon">💼</span>
+            <div class="label">Pružatelj</div>
+            <div class="sublabel">Nudim usluge</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Ime i prezime -->
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label">Ime <span class="optional-badge">(opciono)</span></label>
+          <input type="text" name="first_name" class="form-control"
+                 placeholder="Jasmin" value="{{ request.POST.first_name|default:'' }}">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Prezime <span class="optional-badge">(opciono)</span></label>
+          <input type="text" name="last_name" class="form-control"
+                 placeholder="Hodžić" value="{{ request.POST.last_name|default:'' }}">
+        </div>
+      </div>
+
+      <!-- Username -->
+      <div class="mb-3">
+        <label class="form-label">Username *</label>
+        <input type="text" name="username" class="form-control"
+               placeholder="npr. jasmin123"
+               value="{{ request.POST.username|default:'' }}" required>
+        <div class="text-muted small mt-1">Koristit ćete ovo za prijavu</div>
+      </div>
+
+      <!-- Telefon (opciono) -->
+      <div class="mb-3">
+        <label class="form-label">
+          Broj telefona <span class="optional-badge">(opciono — za notifikacije)</span>
+        </label>
+        <div class="d-flex">
+          <div style="background:#e8f5ee;border:2px solid #e5e7eb;border-radius:12px 0 0 12px;
+                      padding:.875rem 1rem;font-weight:600;color:#1a6b4a;border-right:none;">
+            🇧🇦 +387
+          </div>
+          <input type="tel" name="phone" class="form-control"
+                 style="border-radius:0 12px 12px 0;border-left:none;"
+                 placeholder="61 123 456" inputmode="tel"
+                 value="{{ request.POST.phone|default:'' }}">
+        </div>
+      </div>
+
+      <!-- Lozinka -->
+      <div class="mb-3">
+        <label class="form-label">Lozinka *</label>
+        <input type="password" name="password" class="form-control"
+               placeholder="Min. 8 karaktera" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Potvrda lozinke *</label>
+        <input type="password" name="password2" class="form-control"
+               placeholder="Ponovite lozinku" required>
+      </div>
+
+      <button type="submit" class="btn-auth">Kreiraj nalog →</button>
+    </form>
+
+    <div class="auth-footer">
+      Već imate nalog? <a href="{% url 'login' %}">Prijavite se</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.role-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      card.querySelector('input').checked = true;
+    });
+  });
+</script>
+{% endblock %}

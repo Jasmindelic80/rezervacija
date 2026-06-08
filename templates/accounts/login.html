@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Prijava — RezervišiBiH{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #f8faf9; }
+  .auth-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .auth-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
+  }
+  .auth-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .auth-logo .logo-icon { font-size: 3rem; display: block; }
+  .auth-logo h1 { font-size: 1.5rem; font-weight: 800; color: #1a6b4a; margin: 0.5rem 0 0.25rem; }
+  .auth-logo p { color: #6b7280; font-size: 0.9rem; margin: 0; }
+
+  .form-label { font-weight: 600; font-size: 0.9rem; color: #374151; }
+  .form-control {
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+  }
+  .form-control:focus {
+    border-color: #1a6b4a;
+    box-shadow: 0 0 0 3px rgba(26,107,74,0.1);
+  }
+  .btn-auth {
+    background: #1a6b4a;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.875rem;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 0.5rem;
+  }
+  .btn-auth:hover { background: #0f4a32; }
+  .auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  .auth-footer a { color: #1a6b4a; font-weight: 600; text-decoration: none; }
+  .phone-prefix {
+    background: #e8f5ee;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px 0 0 12px;
+    padding: 0.875rem 1rem;
+    font-weight: 600;
+    color: #1a6b4a;
+    border-right: none;
+  }
+  .phone-input {
+    border-radius: 0 12px 12px 0 !important;
+    border-left: none !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon">📅</span>
+      <h1>RezervišiBiH</h1>
+      <p>Prijavite se na vaš nalog</p>
+    </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} rounded-3 mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">Broj telefona</label>
+        <div class="d-flex">
+          <div class="phone-prefix">🇧🇦 +387</div>
+          <input type="tel" name="phone" class="form-control phone-input"
+                 placeholder="61 123 456" inputmode="tel"
+                 value="{{ phone|default:'' }}" required autofocus>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Lozinka</label>
+        <input type="password" name="password" class="form-control"
+               placeholder="Vaša lozinka" required>
+      </div>
+
+      <button type="submit" class="btn-auth">Prijava →</button>
+    </form>
+
+    <div class="auth-footer">
+      Nemate nalog? <a href="{% url 'register' %}">Registrujte se</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

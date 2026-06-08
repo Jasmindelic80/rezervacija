@@ -95,6 +95,68 @@ def register_step2_verify(request):
         'phone': phone
     })
 
+@require_http_methods(['GET', 'POST'])
+def register_simple(request):
+    """Jednostavna registracija bez SMS verifikacije"""
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        username = request.POST.get('username', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        password = request.POST.get('password', '')
+        password2 = request.POST.get('password2', '')
+        role = request.POST.get('role', 'client')
+
+        # Validacija
+        if not username or not password:
+            messages.error(request, 'Username i lozinka su obavezni.')
+            return render(request, 'accounts/register_simple.html')
+
+        if password != password2:
+            messages.error(request, 'Lozinke se ne podudaraju.')
+            return render(request, 'accounts/register_simple.html')
+
+        if len(password) < 8:
+            messages.error(request, 'Lozinka mora imati najmanje 8 karaktera.')
+            return render(request, 'accounts/register_simple.html')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Ovaj username je već zauzet.')
+            return render(request, 'accounts/register_simple.html')
+
+        # Normalizuj telefon ako je unesen
+        normalized_phone = None
+        if phone:
+            try:
+                normalized_phone = normalize_phone(phone)
+                if User.objects.filter(phone=normalized_phone).exists():
+                    messages.error(request, 'Ovaj broj telefona je već registrovan.')
+                    return render(request, 'accounts/register_simple.html')
+            except Exception:
+                normalized_phone = phone
+
+        # Kreiraj korisnika
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            phone=normalized_phone,
+            phone_verified=True if normalized_phone else False,
+            role=role,
+        )
+
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        messages.success(request, f'Dobrodošli, {first_name or username}!')
+
+        if role == 'provider':
+            return redirect('register_business')
+        return redirect('home')
+
+    return render(request, 'accounts/register_simple.html')
 
 @require_http_methods(['GET', 'POST'])
 def register_step3_complete(request):

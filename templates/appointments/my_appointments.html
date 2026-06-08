@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Moji termini{% endblock %}
+
+{% block extra_css %}
+<style>
+  .appt-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 1rem;
+    border-left: 4px solid #1a6b4a;
+  }
+  .appt-card.past { border-left-color: #9ca3af; opacity: 0.8; }
+  .appt-card.cancelled { border-left-color: #ef4444; }
+  .badge-status {
+    font-size: 0.75rem; padding: 3px 10px;
+    border-radius: 20px; font-weight: 700;
+  }
+  .badge-confirmed { background: #dcfce7; color: #166534; }
+  .badge-pending { background: #fef9c3; color: #854d0e; }
+  .badge-cancelled { background: #fee2e2; color: #991b1b; }
+  .badge-completed { background: #f3f4f6; color: #374151; }
+  .section-title {
+    font-size: 1.1rem; font-weight: 800;
+    margin: 1.5rem 0 1rem; color: #111;
+  }
+  .empty-state {
+    text-align: center; padding: 3rem 1rem;
+    color: #9ca3af;
+  }
+  .empty-state .icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+  .btn-cancel {
+    font-size: 0.8rem; color: #ef4444;
+    border: 1px solid #ef4444; border-radius: 8px;
+    padding: 4px 12px; background: none; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-cancel:hover { background: #ef4444; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 720px">
+  <h1 class="fw-bold mb-1">📋 Moji termini</h1>
+  <p class="text-muted mb-4">Pregled vaših rezervacija</p>
+
+  <!-- Nadolazeći termini -->
+  <div class="section-title">⏰ Nadolazeći</div>
+
+  {% if upcoming %}
+    {% for appt in upcoming %}
+    <div class="appt-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="fw-bold" style="font-size:1rem">
+            {{ appt.business.name }}
+          </div>
+          <div class="text-muted small mt-1">
+            🔧 {{ appt.service.name|default:"—" }}
+            {% if appt.staff %} · 👤 {{ appt.staff.name }}{% endif %}
+          </div>
+          <div class="mt-2">
+            📅 <strong>{{ appt.start_datetime|date:"d.m.Y" }}</strong>
+            🕐 <strong>{{ appt.start_datetime|time:"H:i" }}</strong>
+            {% if appt.service %}
+              · ⏱ {{ appt.service.duration_minutes }} min
+            {% endif %}
+          </div>
+          {% if appt.client_notes %}
+            <div class="text-muted small mt-1">📝 {{ appt.client_notes }}</div>
+          {% endif %}
+        </div>
+        <div class="text-end">
+          <span class="badge-status 
+            {% if appt.status == 'confirmed' %}badge-confirmed
+            {% elif appt.status == 'pending' %}badge-pending
+            {% else %}badge-cancelled{% endif %}">
+            {{ appt.get_status_display }}
+          </span>
+          {% if appt.is_cancellable %}
+          <div class="mt-2">
+            <a href="{% url 'cancel' appt.pk %}" class="btn-cancel">Otkaži</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <span class="icon">📭</span>
+      <p>Nemate nadolazećih termina.</p>
+      <a href="{% url 'search' %}" class="btn text-white fw-bold"
+         style="background:#1a6b4a;border-radius:10px;padding:.75rem 1.5rem">
+        Pronađi biznis →
+      </a>
+    </div>
+  {% endif %}
+
+  <!-- Prošli termini -->
+  {% if past %}
+  <div class="section-title">🕐 Prošli termini</div>
+  {% for appt in past %}
+  <div class="appt-card past {% if 'cancelled' in appt.status %}cancelled{% endif %}">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <div class="fw-bold">{{ appt.business.name }}</div>
+        <div class="text-muted small mt-1">
+          🔧 {{ appt.service.name|default:"—" }}
+        </div>
+        <div class="small mt-1 text-muted">
+          📅 {{ appt.start_datetime|date:"d.m.Y" }}
+          🕐 {{ appt.start_datetime|time:"H:i" }}
+        </div>
+      </div>
+      <span class="badge-status
+        {% if appt.status == 'completed' %}badge-completed
+        {% elif 'cancelled' in appt.status %}badge-cancelled
+        {% else %}badge-completed{% endif %}">
+        {{ appt.get_status_display }}
+      </span>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+</div>
+{% endblock %}
