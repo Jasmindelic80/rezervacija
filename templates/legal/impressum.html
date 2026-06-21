@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Impressum — BookBiH{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:760px;">
+  <h1 style="font-size:2rem;font-weight:800;color:#1a6b4a;margin-bottom:.5rem;">Impressum</h1>
+  <p class="text-muted mb-4">Informacije o operateru platforme u skladu sa Zakonom o elektronskoj trgovini BiH</p>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">Operater platforme</h5>
+    <p class="mb-1"><strong>BookBiH</strong></p>
+    <p class="mb-0 text-muted">Online platforma za rezervaciju termina</p>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">Kontakt</h5>
+    <p class="mb-1">📧 Email: <a href="mailto:info@bookbih.ba" style="color:#1a6b4a;">info@bookbih.ba</a></p>
+    <p class="mb-1">📞 Tel: <a href="tel:+38700000000" style="color:#1a6b4a;">+387 xx xxx xxx</a></p>
+    <p class="mb-0">🌐 Web: <a href="https://www.bookbih.ba" style="color:#1a6b4a;">www.bookbih.ba</a></p>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">Sadržaj i odgovornost</h5>
+    <p class="mb-2 text-muted" style="font-size:.95rem;">
+      Sadržaj ove web stranice kreiran je s najvećom pažnjom. Međutim, ne preuzimamo odgovornost za tačnost,
+      potpunost i aktuelnost objavljenog sadržaja. Kao pružatelj usluge, odgovaramo za vlastiti sadržaj
+      na ovim stranicama u skladu s općim zakonima.
+    </p>
+    <p class="mb-0 text-muted" style="font-size:.95rem;">
+      Platforma BookBiH služi isključivo kao posrednik između klijenata i pružatelja usluga.
+      Ne odgovaramo za kvalitet, tačnost termina, ili bilo koje obaveze između korisnika i pružatelja usluga.
+    </p>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">Zaštita podataka</h5>
+    <p class="mb-0 text-muted" style="font-size:.95rem;">
+      Detalje o obradi ličnih podataka možete pronaći u našoj
+      <a href="{% url 'privacy' %}" style="color:#1a6b4a;font-weight:600;">Politici privatnosti</a>.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+from django.conf.urls.i18n import i18n_patterns
 """
 config/urls.py — Glavni URL konfigurator
 """
@@ -5,9 +6,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('i18n/', include('django.conf.urls.i18n')),
+    path('accounts/', include('allauth.urls')),
 
     # Glavne stranice
     path('', include('apps.businesses.urls')),
@@ -20,7 +24,17 @@ urlpatterns = [
 
     # Notifikacije — postavke
     path('profil/', include('apps.notifications.urls')),
+
+    # Pretplate
+    path('pretplata/', include('apps.subscriptions.urls')),
+
+    # Pravne stranice
+    path('impressum/', TemplateView.as_view(template_name='legal/impressum.html'), name='impressum'),
+    path('privatnost/', TemplateView.as_view(template_name='legal/privacy.html'), name='privacy'),
 ]
+
+if 'rosetta' in settings.INSTALLED_APPS:
+    urlpatterns += [path('rosetta/', include('rosetta.urls'))]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

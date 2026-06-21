@@ -55,14 +55,17 @@ def book_appointment(request, business_slug):
                 status=Appointment.STATUS_CONFIRMED
             )
 
-            # Pošalji potvrdu (Viber/WhatsApp/SMS)
-            from apps.notifications.tasks import send_appointment_confirmation
-            send_appointment_confirmation.delay(str(appointment.id))
-
             messages.success(
                 request,
                 f'Termin uspješno rezervisan! {appointment.start_datetime:%d.%m.%Y u %H:%M}'
             )
+
+            try:
+                from apps.notifications.tasks import send_appointment_confirmation
+                send_appointment_confirmation.delay(str(appointment.id))
+            except Exception:
+                pass  # notifikacija nije kritična — termin je kreiran
+
             return redirect('appointment_confirm', pk=appointment.pk)
 
         except Exception as e:
@@ -122,11 +125,13 @@ def cancel_appointment(request, pk):
         appointment.cancellation_reason = reason
         appointment.save()
 
-        # Pošalji notifikaciju o otkazivanju  ← ISPRAVNO: unutar POST bloka
-        from apps.notifications.tasks import send_cancellation_notification
-        send_cancellation_notification.delay(str(appointment.id), cancelled_by='client')
-
         messages.success(request, 'Termin je uspješno otkazan.')
+
+        try:
+            from apps.notifications.tasks import send_cancellation_notification
+            send_cancellation_notification.delay(str(appointment.id), cancelled_by='client')
+        except Exception:
+            pass  # notifikacija nije kritična — termin je otkazan
         return redirect('my_appointments')
 
     return render(request, 'appointments/cancel.html', {'appointment': appointment})

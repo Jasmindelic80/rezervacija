@@ -1,0 +1,110 @@
+{% extends 'provider/base.html' %}
+{% block title %}Termini — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="fw-800 fs-3 mb-0">Termini</h1>
+    <p class="text-muted mb-0" style="font-size:.875rem;">{{ business.name }}</p>
+  </div>
+  <a href="{% url 'provider_appointment_create' business.slug %}" class="btn fw-700"
+     style="background:var(--primary);color:white;border-radius:8px;padding:.5rem 1.2rem;">
+    ➕ Ručni termin
+  </a>
+</div>
+
+<!-- Filter -->
+<div class="card mb-4 p-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label fw-600 small">Datum od</label>
+      <input type="date" name="od" value="{{ filter_od }}" class="form-control form-control-sm">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-600 small">Datum do</label>
+      <input type="date" name="do" value="{{ filter_do }}" class="form-control form-control-sm">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-600 small">Status</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">Svi</option>
+        <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Na čekanju</option>
+        <option value="confirmed" {% if filter_status == 'confirmed' %}selected{% endif %}>Potvrđeni</option>
+        <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Završeni</option>
+        <option value="cancelled_client" {% if filter_status == 'cancelled_client' %}selected{% endif %}>Otkazani (klijent)</option>
+        <option value="cancelled_business" {% if filter_status == 'cancelled_business' %}selected{% endif %}>Otkazani (biznis)</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-sm fw-600 w-100" style="background:var(--primary);color:white;border-radius:8px;">
+        Filtriraj
+      </button>
+    </div>
+  </form>
+</div>
+
+{% if appointments %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table p-table mb-0">
+      <thead>
+        <tr>
+          <th>Datum i vrijeme</th>
+          <th>Klijent</th>
+          <th>Usluga</th>
+          <th>Radnik</th>
+          <th>Status</th>
+          <th>Akcije</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in appointments %}
+        <tr>
+          <td>
+            <div class="fw-700">{{ appt.start_datetime|date:"d.m.Y" }}</div>
+            <div class="text-muted small">{{ appt.start_datetime|date:"H:i" }} – {{ appt.end_datetime|date:"H:i" }}</div>
+          </td>
+          <td>
+            <div class="fw-600">{{ appt.client.get_full_name|default:appt.client.username }}</div>
+            {% if appt.client.phone %}<div class="text-muted small">{{ appt.client.phone }}</div>{% endif %}
+          </td>
+          <td>{{ appt.service.name|default:"—" }}</td>
+          <td>{{ appt.staff.name|default:"—" }}</td>
+          <td>
+            <span class="badge rounded-pill badge-{{ appt.status }}">{{ appt.get_status_display }}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-1 flex-wrap">
+              <a href="{% url 'provider_appointment_detail' appt.pk %}" class="btn btn-sm btn-outline-secondary rounded-3 py-0 px-2">
+                Otvori
+              </a>
+              {% if appt.status == 'pending' %}
+              <form method="post" action="{% url 'provider_appointment_action' appt.pk %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="confirm">
+                <button type="submit" class="btn btn-sm rounded-3 py-0 px-2" style="background:#d1fae5;color:#065f46;border:none;font-weight:700;">✓</button>
+              </form>
+              {% endif %}
+              {% if appt.status in 'pending,confirmed' %}
+              <form method="post" action="{% url 'provider_appointment_action' appt.pk %}" class="d-inline"
+                    onsubmit="return confirm('Oslobodi ovaj termin?')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cancel">
+                <button type="submit" class="btn btn-sm rounded-3 py-0 px-2" style="background:#fee2e2;color:#991b1b;border:none;font-weight:700;" title="Oslobodi termin">✕</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <div style="font-size:3rem;">📋</div>
+  <p class="mt-2">Nema termina za odabrani filter.</p>
+</div>
+{% endif %}
+{% endblock %}

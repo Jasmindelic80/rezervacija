@@ -5,53 +5,57 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
 from .models import PhoneOTP
-from .forms import PhoneInputForm, OTPVerifyForm, CompleteProfileForm
-from .sms import send_otp_sms
+from .forms import EmailPhoneForm, OTPVerifyForm, CompleteProfileForm, COUNTRY_CODES
+from .otp_sender import send_otp_email
 
 User = get_user_model()
 
 
 @require_http_methods(['GET', 'POST'])
 def register_step1_phone(request):
-    """Korak 1: Unesi broj telefona → pošalji OTP"""
+    """Korak 1: Unesi email (+ opciono telefon) → pošalji OTP na email"""
     if request.user.is_authenticated:
         return redirect('home')
 
-    form = PhoneInputForm(request.POST or None)
+    form = EmailPhoneForm(request.POST or None)
 
     if request.method == 'POST' and form.is_valid():
-        phone = form.cleaned_data['phone']
+        email = form.cleaned_data['email']
+        phone = form.cleaned_data.get('phone')
         role = form.cleaned_data['role']
 
-        # Provjeri je li broj već registrovan
-        if User.objects.filter(phone=phone).exists():
-            existing = User.objects.get(phone=phone)
-            if existing.phone_verified:
-                messages.info(request, 'Ovaj broj je već registrovan. Prijavite se.')
-                return redirect('login')
+        if User.objects.filter(email=email).exists():
+            messages.info(request, 'Ovaj email je već registrovan. Prijavite se.')
+            return redirect('login')
 
-        # Generiši i pošalji OTP
-        otp_obj = PhoneOTP.create_for_phone(phone, purpose='register')
-        success = send_otp_sms(phone, otp_obj.otp, purpose='register')
+        otp_obj = PhoneOTP.create_for_phone(email, purpose='register')
+        success = send_otp_email(email, otp_obj.otp, purpose='register')
 
         if not success:
-            messages.error(request, 'Greška pri slanju SMS-a. Pokušajte ponovo.')
-            return render(request, 'accounts/register_phone.html', {'form': form})
+            messages.error(request, 'Greška pri slanju koda na email. Pokušajte ponovo.')
+            return render(request, 'accounts/register_phone.html', {
+                'form': form,
+                'country_codes': COUNTRY_CODES,
+            })
 
+        request.session['reg_email'] = email
         request.session['reg_phone'] = phone
         request.session['reg_role'] = role
 
-        messages.success(request, f'Kod poslan na {phone}')
+        messages.success(request, f'Kod je poslan na {email}')
         return redirect('register_verify')
 
-    return render(request, 'accounts/register_phone.html', {'form': form})
+    return render(request, 'accounts/register_phone.html', {
+        'form': form,
+        'country_codes': COUNTRY_CODES,
+    })
 
 
 @require_http_methods(['GET', 'POST'])
 def register_step2_verify(request):
-    """Korak 2: Unesi OTP kod"""
-    phone = request.session.get('reg_phone')
-    if not phone:
+    """Korak 2: Unesi OTP kod poslan na email"""
+    email = request.session.get('reg_email')
+    if not email:
         return redirect('register')
 
     form = OTPVerifyForm(request.POST or None)
@@ -61,7 +65,7 @@ def register_step2_verify(request):
 
         try:
             otp_obj = PhoneOTP.objects.filter(
-                phone=phone, purpose='register', verified=False
+                phone=email, purpose='register', verified=False
             ).latest('created_at')
         except PhoneOTP.DoesNotExist:
             messages.error(request, 'Nema aktivnog koda. Zatražite novi.')
@@ -82,7 +86,7 @@ def register_step2_verify(request):
             remaining = 5 - otp_obj.attempts
             messages.error(request, f'Pogrešan kod. Još {remaining} pokušaj(a).')
             return render(request, 'accounts/register_verify.html', {
-                'form': form, 'phone': phone
+                'form': form, 'email': email,
             })
 
         otp_obj.verified = True
@@ -92,7 +96,7 @@ def register_step2_verify(request):
 
     return render(request, 'accounts/register_verify.html', {
         'form': form,
-        'phone': phone
+        'email': email,
     })
 
 @require_http_methods(['GET', 'POST'])
@@ -161,11 +165,12 @@ def register_simple(request):
 @require_http_methods(['GET', 'POST'])
 def register_step3_complete(request):
     """Korak 3: Dopuni profil i kreiraj nalog"""
-    phone = request.session.get('reg_phone')
+    email = request.session.get('reg_email')
     verified = request.session.get('reg_phone_verified')
     role = request.session.get('reg_role', 'client')
+    phone = request.session.get('reg_phone')
 
-    if not phone or not verified:
+    if not email or not verified:
         return redirect('register')
 
     form = CompleteProfileForm(request.POST or None)
@@ -173,7 +178,7 @@ def register_step3_complete(request):
     if request.method == 'POST' and form.is_valid():
         cd = form.cleaned_data
 
-        base_username = f"user_{phone.replace('+', '').replace(' ', '')}"
+        base_username = email.split('@')[0]
         username = base_username
         counter = 1
         while User.objects.filter(username=username).exists():
@@ -185,13 +190,13 @@ def register_step3_complete(request):
             password=cd['password'],
             first_name=cd['first_name'],
             last_name=cd['last_name'],
-            email=cd.get('email', ''),
-            phone=phone,
-            phone_verified=True,
+            email=email,
+            phone=phone or None,
+            phone_verified=bool(phone),
             role=role,
         )
 
-        for key in ['reg_phone', 'reg_role', 'reg_phone_verified']:
+        for key in ['reg_email', 'reg_phone', 'reg_role', 'reg_phone_verified']:
             request.session.pop(key, None)
 
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -201,19 +206,19 @@ def register_step3_complete(request):
             return redirect('register_business')
         return redirect('home')
 
-    return render(request, 'accounts/register_complete.html', {'form': form, 'phone': phone})
+    return render(request, 'accounts/register_complete.html', {'form': form, 'email': email})
 
 
 @require_http_methods(['POST'])
 def resend_otp(request):
-    """Ponovo pošalji OTP"""
-    phone = request.session.get('reg_phone')
-    if not phone:
+    """Ponovo pošalji OTP na email"""
+    email = request.session.get('reg_email')
+    if not email:
         return redirect('register')
 
-    otp_obj = PhoneOTP.create_for_phone(phone, purpose='register')
-    send_otp_sms(phone, otp_obj.otp, purpose='register')
-    messages.info(request, 'Novi kod je poslan.')
+    otp_obj = PhoneOTP.create_for_phone(email, purpose='register')
+    send_otp_email(email, otp_obj.otp, purpose='register')
+    messages.info(request, f'Novi kod je poslan na {email}.')
     return redirect('register_verify')
 
 

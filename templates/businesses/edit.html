@@ -1,0 +1,210 @@
+{% extends 'provider/base.html' %}
+{% block title %}Uredi biznis — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="fw-800 fs-3 mb-1">Uredi biznis</h1>
+  <p class="text-muted mb-0">{{ business.name }}</p>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card p-4">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h6 class="fw-700 mb-3 text-muted text-uppercase" style="font-size:.75rem;letter-spacing:.08em;">Osnovni podaci</h6>
+
+        <div class="mb-3">
+          <label class="form-label fw-600">Naziv biznisa *</label>
+          <input type="text" name="name" class="form-control" required value="{{ business.name }}">
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Kategorija</label>
+            <select name="category" class="form-select">
+              <option value="">— Bez kategorije —</option>
+              {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if business.category_id == cat.id %}selected{% endif %}>
+                {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Interval termina (min)</label>
+            <input type="number" name="appointment_interval_minutes" class="form-control"
+                   min="5" max="120" step="5" value="{{ business.appointment_interval_minutes }}">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-600">Opis</label>
+          <textarea name="description" class="form-control" rows="3">{{ business.description }}</textarea>
+        </div>
+
+        <hr class="my-4">
+        <h6 class="fw-700 mb-3 text-muted text-uppercase" style="font-size:.75rem;letter-spacing:.08em;">Lokacija i kontakt</h6>
+
+        <div class="mb-3">
+          <label class="form-label fw-600">Adresa *</label>
+          <input type="text" name="address" class="form-control" required value="{{ business.address }}">
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Grad *</label>
+            <input type="text" name="city" class="form-control" required value="{{ business.city }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Kanton/Regija</label>
+            <input type="text" name="canton" class="form-control" value="{{ business.canton }}">
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Telefon *</label>
+            <input type="text" name="phone" class="form-control" required value="{{ business.phone }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Email</label>
+            <input type="email" name="email" class="form-control" value="{{ business.email }}">
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Web stranica</label>
+            <input type="url" name="website" class="form-control" value="{{ business.website }}" placeholder="https://...">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Instagram</label>
+            <div class="input-group">
+              <span class="input-group-text">@</span>
+              <input type="text" name="instagram" class="form-control" value="{{ business.instagram }}">
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+        <h6 class="fw-700 mb-3 text-muted text-uppercase" style="font-size:.75rem;letter-spacing:.08em;">Slike</h6>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Logo</label>
+            {% if business.logo %}
+            <div class="mb-2">
+              <img src="{{ business.logo.url }}" style="height:60px;border-radius:8px;">
+            </div>
+            {% endif %}
+            <input type="file" name="logo" class="form-control form-control-sm" accept="image/*">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Naslovna slika</label>
+            {% if business.cover_image %}
+            <div class="mb-2">
+              <img src="{{ business.cover_image.url }}" style="height:60px;border-radius:8px;object-fit:cover;width:100%;">
+            </div>
+            {% endif %}
+            <input type="file" name="cover_image" class="form-control form-control-sm" accept="image/*">
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn fw-700 px-4" style="background:var(--primary);color:white;border-radius:8px;">
+            Sačuvaj izmjene
+          </button>
+          <a href="{% url 'provider_dashboard' %}" class="btn btn-outline-secondary fw-600 rounded-3">
+            Otkaži
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# ── USLUGE ── #}
+<div class="row justify-content-center mt-4">
+  <div class="col-lg-8">
+    <div class="card p-4">
+      <h6 class="fw-700 mb-3 text-muted text-uppercase" style="font-size:.75rem;letter-spacing:.08em;">Usluge</h6>
+
+      {% with services=business.services.all %}
+      {% if services %}
+      <table class="table p-table mb-4">
+        <thead>
+          <tr>
+            <th>Naziv</th>
+            <th>Trajanje</th>
+            <th>Cijena</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in services %}
+          <tr>
+            <td class="fw-600">{{ s.name }}{% if s.description %}<br><small class="text-muted fw-400">{{ s.description|truncatechars:60 }}</small>{% endif %}</td>
+            <td>{{ s.duration_minutes }} min</td>
+            <td>{{ s.price_display }}</td>
+            <td>
+              <form method="post" action="{% url 'toggle_service' business.slug s.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="badge border-0 {% if s.is_active %}badge-confirmed{% else %}badge-cancelled{% endif %}" style="cursor:pointer;">
+                  {% if s.is_active %}Aktivna{% else %}Neaktivna{% endif %}
+                </button>
+              </form>
+            </td>
+            <td>
+              <form method="post" action="{% url 'delete_service' business.slug s.id %}"
+                    onsubmit="return confirm('Obrisati uslugu {{ s.name }}?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger fw-600" style="border-radius:6px;">Obriši</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-muted mb-4">Nema dodanih usluga. Dodajte prvu ispod.</p>
+      {% endif %}
+      {% endwith %}
+
+      <h6 class="fw-700 mb-3 text-muted text-uppercase" style="font-size:.75rem;letter-spacing:.08em;">Dodaj novu uslugu</h6>
+      <form method="post" action="{% url 'add_service' business.slug %}">
+        {% csrf_token %}
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Naziv usluge *</label>
+            <input type="text" name="name" class="form-control" placeholder="npr. Šišanje, Manikir..." required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-600">Trajanje (min) *</label>
+            <input type="number" name="duration_minutes" class="form-control" min="5" max="480" step="5" placeholder="30" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-600">Cijena (KM) *</label>
+            <input type="number" name="price" class="form-control" min="0" step="0.50" placeholder="20.00" required>
+          </div>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Napomena o cijeni</label>
+            <input type="text" name="price_note" class="form-control" placeholder="npr. od 20 KM, po dogovoru">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Opis (opcionalno)</label>
+            <input type="text" name="description" class="form-control" placeholder="Kratak opis usluge">
+          </div>
+        </div>
+        <button type="submit" class="btn fw-700 px-4" style="background:var(--primary);color:white;border-radius:8px;">
+          + Dodaj uslugu
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

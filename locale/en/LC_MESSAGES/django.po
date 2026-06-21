@@ -1,0 +1,120 @@
+# English translations
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+msgid "Rezervirajte termin online"
+msgstr "Book an appointment online"
+
+msgid "Rezervirajte termin za bilo koju uslugu u BiH"
+msgstr "Book an Appointment for Any Service in BiH"
+
+msgid "Frizeri, kozmetičari, automehaničari, stomatolozi i još mnogo više — sve na jednom mjestu."
+msgstr "Hairdressers, beauticians, mechanics, dentists and much more — all in one place."
+
+msgid "Sve kategorije"
+msgstr "All categories"
+
+msgid "Grad (npr. Sarajevo)"
+msgstr "City (e.g. Sarajevo)"
+
+msgid "Šta tražite?"
+msgstr "What are you looking for?"
+
+msgid "Pretraži"
+msgstr "Search"
+
+msgid "Registriranih biznisa"
+msgstr "Registered businesses"
+
+msgid "Kategorija usluga"
+msgstr "Service categories"
+
+msgid "Rezervacija"
+msgstr "Appointments"
+
+msgid "Kategorije usluga"
+msgstr "Service Categories"
+
+msgid "Izaberite vrstu usluge koja vam treba"
+msgstr "Choose the type of service you need"
+
+msgid "biznisa"
+msgstr "businesses"
+
+msgid "Istaknuti biznisi"
+msgstr "Featured Businesses"
+
+msgid "Najviše ocijenjeni pružatelji usluga"
+msgstr "Top-rated service providers"
+
+msgid "Vidi sve"
+msgstr "View all"
+
+msgid "Slobodni termini"
+msgstr "Available slots"
+
+msgid "Još nema registriranih biznisa."
+msgstr "No registered businesses yet."
+
+msgid "Budite prvi!"
+msgstr "Be the first!"
+
+msgid "Imate salon, servis ili ordinaciju?"
+msgstr "Do you have a salon, shop or practice?"
+
+msgid "Registrujte se besplatno i počnite primati online rezervacije već danas. Viber i WhatsApp notifikacije uključene!"
+msgstr "Register for free and start receiving online bookings today. Viber and WhatsApp notifications included!"
+
+msgid "Registruj biznis besplatno"
+msgstr "Register your business for free"
+
+msgid "Rezervirajte termin za bilo koju uslugu u BiH — brzo i jednostavno."
+msgstr "Book an appointment for any service in BiH — fast and simple."
+
+msgid "Usluge"
+msgstr "Services"
+
+msgid "Frizeri"
+msgstr "Hairdressers"
+
+msgid "Kozmetika"
+msgstr "Beauty"
+
+msgid "Automehaničari"
+msgstr "Auto Mechanics"
+
+msgid "Za biznise"
+msgstr "For Businesses"
+
+msgid "Registruj biznis"
+msgstr "Register Business"
+
+msgid "Kako funkcioniše"
+msgstr "How It Works"
+
+msgid "Kontakt"
+msgstr "Contact"
+
+msgid "Sva prava zadržana."
+msgstr "All rights reserved."
+
+msgid "Moji termini"
+msgstr "My Appointments"
+
+msgid "Notifikacije"
+msgstr "Notifications"
+
+msgid "Postavke"
+msgstr "Settings"
+
+msgid "Odjava"
+msgstr "Log Out"
+
+msgid "Prijava"
+msgstr "Login"
+
+msgid "Registracija"
+msgstr "Register"

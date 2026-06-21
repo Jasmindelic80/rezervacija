@@ -1,37 +1,311 @@
 {% extends 'base.html' %}
-{% block title %}Pretraga{% endblock %}
+{% load i18n %}
+{% block title %}
+  {% if category %}{{ category.name }}{% else %}Pretraga{% endif %}
+  {% if selected_city %}— {{ selected_city }}{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .filter-bar {
+    background: white; border-radius: 14px; padding: 1rem 1.25rem;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06); margin-bottom: 1.5rem;
+    display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;
+  }
+  .filter-bar select, .filter-bar input[type=text] {
+    border: 1.5px solid #e5e7eb; border-radius: 8px;
+    padding: 0.5rem 0.875rem; font-family: inherit;
+    font-size: 0.9rem; outline: none; background: #f9fafb;
+  }
+  .filter-bar input[type=text]:focus, .filter-bar select:focus {
+    border-color: #1a6b4a; background: white;
+  }
+  .filter-bar button[type=submit] {
+    background: #1a6b4a; color: white; border: none; border-radius: 8px;
+    padding: 0.5rem 1.25rem; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  }
+  .filter-bar button[type=submit]:hover { background: #0f4a32; }
+
+  .loc-btn {
+    display: flex; align-items: center; gap: 5px;
+    border: 1.5px solid #1a6b4a; border-radius: 8px;
+    padding: 0.5rem 0.875rem; font-size: 0.9rem; font-weight: 600;
+    color: #1a6b4a; background: white; cursor: pointer; white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .loc-btn:hover { background: #e8f5ee; }
+  .loc-btn.active { background: #1a6b4a; color: white; }
+  .loc-btn.loading { opacity: .6; cursor: wait; }
+
+  .city-wrap { position: relative; }
+  .city-dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0;
+    background: white; border: 1.5px solid #e5e7eb; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 200;
+    min-width: 200px; overflow: hidden; display: none;
+  }
+  .city-dropdown .city-opt {
+    padding: 0.6rem 1rem; cursor: pointer; font-size: 0.9rem; transition: background 0.1s;
+  }
+  .city-dropdown .city-opt:hover { background: #e8f5ee; color: #1a6b4a; font-weight: 600; }
+
+  .radius-select {
+    border: 1.5px solid #1a6b4a !important; border-radius: 8px;
+    padding: 0.5rem 0.75rem; font-size: 0.9rem; font-weight: 600;
+    color: #1a6b4a; background: #e8f5ee !important; cursor: pointer;
+  }
+
+  .biz-card {
+    background: white; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: all 0.2s;
+    text-decoration: none; color: #111; display: flex; flex-direction: column; height: 100%;
+  }
+  .biz-card:hover {
+    transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.11); color: #111;
+  }
+  .biz-card .cover {
+    height: 130px; background: #e8f5ee;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; overflow: hidden;
+  }
+  .biz-card .cover img { width: 100%; height: 100%; object-fit: cover; }
+  .biz-card .body { padding: 1rem; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .biz-card .biz-name { font-weight: 700; font-size: 0.95rem; }
+  .biz-card .biz-meta { font-size: 0.78rem; color: #6b7280; }
+  .biz-card .rating { font-size: 0.82rem; }
+  .next-slot { margin-top: auto; padding-top: 0.5rem; font-size: 0.8rem; font-weight: 700; }
+  .next-slot.today { color: #1a6b4a; }
+  .next-slot.soon  { color: #d97706; }
+  .next-slot.later { color: #6b7280; }
+  .next-slot.none  { color: #9ca3af; }
+  .dist-badge {
+    display: inline-block; background: #eff6ff; color: #1d4ed8;
+    border-radius: 6px; padding: 2px 7px; font-size: 0.75rem; font-weight: 700;
+    margin-top: 3px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
-  <h2 class="fw-bold mb-4">
-    {% if selected_category %}{{ selected_category }}{% else %}Svi biznisi{% endif %}
-    {% if selected_city %}u {{ selected_city }}{% endif %}
-  </h2>
 
+  <!-- Filter bar -->
+  <form class="filter-bar" method="get" id="search-form">
+    {% if category %}<input type="hidden" name="kategorija" value="{{ category.slug }}">{% endif %}
+    {% if not category %}
+    <select name="kategorija">
+      <option value="">Sve kategorije</option>
+      {% for cat in categories %}
+        <option value="{{ cat.slug }}" {% if cat.slug == selected_category %}selected{% endif %}>
+          {{ cat.icon }} {{ cat.name }}
+        </option>
+      {% endfor %}
+    </select>
+    {% endif %}
+
+    <!-- Hidden location inputs -->
+    <input type="hidden" name="lat" id="f-lat" value="{{ user_lat }}">
+    <input type="hidden" name="lng" id="f-lng" value="{{ user_lng }}">
+
+    <!-- City input (hidden only in GPS mode) -->
+    <div class="city-wrap" id="city-wrap" {% if location_mode == 'gps' %}style="display:none"{% endif %}>
+      <input type="text" name="grad" id="city-input-results"
+             value="{{ selected_city }}" placeholder="📍 Grad" autocomplete="off">
+      <div class="city-dropdown" id="city-dropdown-results"></div>
+    </div>
+
+    <!-- Location button (GPS mode only) -->
+    <button type="button" class="loc-btn {% if location_mode == 'gps' %}active{% endif %}"
+            id="loc-btn" onclick="toggleLocation()">
+      📍 {% if location_mode == 'gps' %}Vaša lokacija{% else %}Moja lokacija{% endif %}
+    </button>
+
+    <!-- Radius (shown in GPS mode or city+radius mode) -->
+    <select name="radius" id="radius-select" class="radius-select"
+            {% if not using_location %}style="display:none"{% endif %}>
+      <option value="5"  {% if radius == "5"  %}selected{% endif %}>5 km</option>
+      <option value="10" {% if radius == "10" %}selected{% endif %}>10 km</option>
+      <option value="20" {% if radius == "20" %}selected{% endif %}>20 km</option>
+      <option value="50" {% if radius == "50" %}selected{% endif %}>50 km</option>
+    </select>
+
+    <input type="text" name="q" value="{{ query|default:'' }}" placeholder="🔍 Pretraga...">
+    <button type="submit">Pretraži</button>
+  </form>
+
+  <!-- Heading -->
+  <div class="d-flex align-items-baseline gap-2 mb-3">
+    <h2 class="fw-bold mb-0">
+      {% if category %}{{ category.icon }} {{ category.name }}
+      {% else %}Rezultati pretrage{% endif %}
+      {% if location_mode == 'city' %}
+        <span class="text-muted fs-5 fw-normal"> — {{ selected_city }}, unutar {{ radius }} km</span>
+      {% elif location_mode == 'gps' %}
+        <span class="text-muted fs-5 fw-normal"> — u radijusu {{ radius }} km</span>
+      {% elif selected_city %}
+        <span class="text-muted fs-5 fw-normal"> — {{ selected_city }}</span>
+      {% endif %}
+    </h2>
+    <span class="text-muted small">{{ businesses|length }} biznisa</span>
+  </div>
+
+  <!-- Results grid -->
   <div class="row g-3">
     {% for biz in businesses %}
     <div class="col-sm-6 col-md-4 col-lg-3">
-      <a href="{% url 'business_detail' biz.slug %}" class="text-decoration-none text-dark">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <h5 class="fw-bold">{{ biz.name }}</h5>
-            <p class="text-muted small mb-1">{{ biz.category.name }}</p>
-            <p class="text-muted small mb-1">📍 {{ biz.city }}</p>
-            {% if biz.avg_rating %}
-            <p class="small mb-0">⭐ {{ biz.avg_rating|floatformat:1 }}</p>
+      <a href="{% url 'business_detail' biz.slug %}" class="biz-card">
+        <div class="cover">
+          {% if biz.cover_image %}<img src="{{ biz.cover_image.url }}" alt="{{ biz.name }}">
+          {% else %}{{ biz.category.icon|default:"🏢" }}{% endif %}
+        </div>
+        <div class="body">
+          <div class="biz-name">{{ biz.name }}</div>
+          <div class="biz-meta">{{ biz.category.name }}</div>
+          <div class="biz-meta">📍 {{ biz.city }}</div>
+          {% if using_location and biz.distance_km is not None %}
+            <div class="dist-badge">🗺 {{ biz.distance_km }} km</div>
+          {% endif %}
+          {% if biz.avg_rating %}
+          <div class="rating">⭐ {{ biz.avg_rating|floatformat:1 }}
+            <span class="text-muted">({{ biz.review_count }})</span>
+          </div>
+          {% endif %}
+
+          {% if biz.next_slot %}
+            {% if biz.next_date == today %}
+              <div class="next-slot today">🟢 Danas u {{ biz.next_slot|time:"H:i" }}</div>
+            {% elif biz.next_date == tomorrow %}
+              <div class="next-slot soon">🟡 Sutra u {{ biz.next_slot|time:"H:i" }}</div>
+            {% else %}
+              <div class="next-slot later">📅 {{ biz.next_date|date:"d.m." }} u {{ biz.next_slot|time:"H:i" }}</div>
             {% endif %}
-          </div>
-          <div class="card-footer bg-transparent">
-            <span class="badge text-white" style="background:#1a6b4a">Rezerviši →</span>
-          </div>
+          {% else %}
+            <div class="next-slot none">— Nema slobodnih termina</div>
+          {% endif %}
         </div>
       </a>
     </div>
     {% empty %}
     <div class="col-12 text-center text-muted py-5">
-      <h4>Nema rezultata</h4>
-      <p>Pokušajte drugu kategoriju ili grad.</p>
+      <div style="font-size:3rem">🔍</div>
+      <h5 class="mt-3">Nema rezultata</h5>
+      <p>{% if using_location %}Povećajte radijus ili probajte drugu kategoriju.
+         {% else %}Pokušajte drugu kategoriju ili grad.{% endif %}</p>
     </div>
     {% endfor %}
   </div>
 </div>
+
+<script>
+// ── City autocomplete ─────────────────────────────────────────
+(function() {
+  const input     = document.getElementById('city-input-results');
+  const dropdown  = document.getElementById('city-dropdown-results');
+  const latInput  = document.getElementById('f-lat');
+  const lngInput  = document.getElementById('f-lng');
+  const radiusSel = document.getElementById('radius-select');
+  if (!input) return;
+
+  let timer;
+  let cityMap = {};
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    // Clear coordinates while user is typing
+    latInput.value = '';
+    lngInput.value = '';
+    radiusSel.style.display = 'none';
+
+    const q = this.value.trim();
+    if (!q) { dropdown.style.display = 'none'; return; }
+    timer = setTimeout(() => {
+      fetch(`/api/gradovi/?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.cities.length) { dropdown.style.display = 'none'; return; }
+          cityMap = {};
+          data.cities.forEach(c => { cityMap[c.name] = c; });
+          dropdown.innerHTML = data.cities
+            .map(c => `<div class="city-opt" onmousedown="pickCity('${c.name.replace(/'/g, "\\'")}')">
+              ${c.name}${c.lat ? ' <span style="font-size:.75rem;color:#9ca3af">📍</span>' : ''}
+            </div>`)
+            .join('');
+          dropdown.style.display = 'block';
+        });
+    }, 200);
+  });
+
+  input.addEventListener('blur', () => setTimeout(() => dropdown.style.display = 'none', 150));
+
+  window.pickCity = function(name) {
+    input.value = name;
+    dropdown.style.display = 'none';
+    const city = cityMap[name];
+    if (city && city.lat && city.lng) {
+      latInput.value = city.lat;
+      lngInput.value = city.lng;
+      radiusSel.style.display = '';
+    }
+    document.getElementById('search-form').submit();
+  };
+})();
+
+// ── Auto-submit on radius change ─────────────────────────────
+(function() {
+  const sel = document.getElementById('radius-select');
+  if (sel) sel.addEventListener('change', () => document.getElementById('search-form').submit());
+})();
+
+// ── GPS Location toggle ───────────────────────────────────────
+function toggleLocation() {
+  const latInput  = document.getElementById('f-lat');
+  const lngInput  = document.getElementById('f-lng');
+  const cityWrap  = document.getElementById('city-wrap');
+  const cityInput = document.getElementById('city-input-results');
+  const locBtn    = document.getElementById('loc-btn');
+  const radiusSel = document.getElementById('radius-select');
+
+  // If already in GPS mode, turn it off
+  if (locBtn.classList.contains('active')) {
+    latInput.value = '';
+    lngInput.value = '';
+    cityWrap.style.display = '';
+    radiusSel.style.display = 'none';
+    locBtn.classList.remove('active');
+    locBtn.textContent = '📍 Moja lokacija';
+    return;
+  }
+
+  if (!navigator.geolocation) {
+    alert('Vaš browser ne podržava geolokaciju.');
+    return;
+  }
+
+  locBtn.classList.add('loading');
+  locBtn.textContent = '⏳ Tražim lokaciju...';
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      latInput.value = pos.coords.latitude.toFixed(6);
+      lngInput.value = pos.coords.longitude.toFixed(6);
+      if (cityInput) cityInput.value = '';
+      cityWrap.style.display = 'none';
+      radiusSel.style.display = '';
+      locBtn.classList.remove('loading');
+      locBtn.classList.add('active');
+      locBtn.textContent = '📍 Vaša lokacija';
+      document.getElementById('search-form').submit();
+    },
+    err => {
+      locBtn.classList.remove('loading');
+      locBtn.textContent = '📍 Moja lokacija';
+      const msg = err.code === 1
+        ? 'Pristup lokaciji je odbijen. Dozvolite pristup u postavkama browsera.'
+        : 'Nije moguće odrediti lokaciju. Pokušajte ponovo.';
+      alert(msg);
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
+}
+</script>
 {% endblock %}

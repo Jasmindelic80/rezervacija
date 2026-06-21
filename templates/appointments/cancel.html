@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Otkazivanje termina{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+
+      <div class="text-center mb-4">
+        <div style="font-size:3rem; line-height:1;">⚠️</div>
+        <h2 class="fw-bold mt-2">Otkazivanje termina</h2>
+        <p class="text-muted">Jeste li sigurni da želite otkazati ovaj termin?</p>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3" style="color: var(--primary, #1a6b4a);">Detalji termina</h5>
+
+          <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+            <span class="text-muted">Salon</span>
+            <span class="fw-semibold">{{ appointment.business.name }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+            <span class="text-muted">Usluga</span>
+            <span class="fw-semibold">{{ appointment.service.name }}</span>
+          </div>
+
+          {% if appointment.staff %}
+          <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+            <span class="text-muted">Osoblje</span>
+            <span class="fw-semibold">{{ appointment.staff.name }}</span>
+          </div>
+          {% endif %}
+
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Datum i vrijeme</span>
+            <span class="fw-semibold">{{ appointment.start_datetime|date:"d.m.Y" }} u {{ appointment.start_datetime|time:"H:i" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Razlog otkazivanja <span class="text-muted fw-normal">(opciono)</span></label>
+          <textarea name="reason" class="form-control" rows="3"
+                    placeholder="Navedite razlog otkazivanja..."></textarea>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-danger fw-semibold">
+            Otkaži termin
+          </button>
+          <a href="{% url 'my_appointments' %}" class="btn btn-outline-secondary fw-semibold">
+            Nazad na moje termine
+          </a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -249,19 +249,25 @@
 
       <!-- STEP 1: Service -->
       <div class="booking-card" id="step-1">
-        <div class="section-title">Choose a service</div>
-        {% for service in services %}
-        <div class="service-card" 
-             onclick="selectService('{{ service.id }}', '{{ service.name }}', '{{ service.duration_minutes }}', '{{ service.price_display }}')"
-             data-id="{{ service.id }}">
-          <div>
-            <div class="fw-600">{{ service.name }}</div>
-            <div class="duration">⏱ {{ service.duration_minutes }} min</div>
-            {% if service.description %}<div class="text-muted small">{{ service.description }}</div>{% endif %}
+        <div class="section-title">Odaberite uslugu</div>
+        {% if services %}
+          {% for service in services %}
+          <div class="service-card"
+               onclick="selectService('{{ service.id }}', '{{ service.name }}', '{{ service.duration_minutes }}', '{{ service.price_display }}')"
+               data-id="{{ service.id }}">
+            <div>
+              <div class="fw-600">{{ service.name }}</div>
+              <div class="duration">⏱ {{ service.duration_minutes }} min</div>
+              {% if service.description %}<div class="text-muted small">{{ service.description }}</div>{% endif %}
+            </div>
+            <div class="price">{{ service.price_display }}</div>
           </div>
-          <div class="price">{{ service.price_display }}</div>
-        </div>
-        {% endfor %}
+          {% endfor %}
+        {% else %}
+          <div class="alert-info">
+            Ovaj salon trenutno nema dostupnih usluga. Molimo pokušajte ponovo kasnije.
+          </div>
+        {% endif %}
       </div>
 
       <!-- STEP 2: Staff -->
@@ -301,16 +307,8 @@
           <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(1)">›</button>
         </div>
         
-        <div class="calendar-grid mb-3">
-          <div class="cal-header">Mon</div>
-          <div class="cal-header">Tue</div>
-          <div class="cal-header">Wed</div>
-          <div class="cal-header">Thu</div>
-          <div class="cal-header">Fri</div>
-          <div class="cal-header">Sat</div>
-          <div class="cal-header">Sun</div>
-          <!-- Days injected by JS -->
-          <div id="calendar-days"></div>
+        <div class="calendar-grid mb-3" id="calendar-grid">
+          <!-- Headers and days injected by JS -->
         </div>
 
         <div id="time-section" style="display:none">
@@ -467,16 +465,18 @@ function renderCalendar() {
   document.getElementById('calendar-month-label').textContent =
     `${MONTHS_BS[month]} ${year}`;
 
-  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
   today.setHours(0,0,0,0);
-  
-  // Monday-first: convert Sunday(0) to 6, others -1
+
   let startOffset = firstDay === 0 ? 6 : firstDay - 1;
 
   let html = '';
-  // Empty cells
+  ['Pon','Uto','Sri','Čet','Pet','Sub','Ned'].forEach(h => {
+    html += `<div class="cal-header">${h}</div>`;
+  });
+
   for (let i = 0; i < startOffset; i++) {
     html += '<div></div>';
   }
@@ -487,7 +487,7 @@ function renderCalendar() {
     const isPast = thisDate < today;
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const isSelected = state.selectedDate === dateStr;
-    
+
     let cls = 'cal-day';
     if (isPast) cls += ' disabled';
     if (isToday) cls += ' today';
@@ -500,7 +500,7 @@ function renderCalendar() {
     }
   }
 
-  document.getElementById('calendar-days').innerHTML = html;
+  document.getElementById('calendar-grid').innerHTML = html;
 }
 
 function changeMonth(delta) {

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Dashboard — BookBiH{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="fw-800 fs-2 mb-0">Moj dashboard</h1>
+    <a href="{% url 'register_business' %}" class="btn btn-sm fw-700"
+       style="background:var(--primary);color:white;border-radius:10px;padding:.5rem 1.25rem;">
+      + Novi biznis
+    </a>
+  </div>
+
+  {% if businesses %}
+    <div class="row g-4">
+      {% for biz in businesses %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3 h-100">
+          {% if biz.cover_image %}
+          <img src="{{ biz.cover_image.url }}" class="card-img-top rounded-top-3" style="height:140px;object-fit:cover;">
+          {% else %}
+          <div class="rounded-top-3 d-flex align-items-center justify-content-center"
+               style="height:140px;background:var(--primary-light);">
+            <span style="font-size:3rem;">🏢</span>
+          </div>
+          {% endif %}
+          <div class="card-body">
+            <h5 class="fw-700 mb-1">{{ biz.name }}</h5>
+            <p class="text-muted small mb-2">{{ biz.city }} · {{ biz.category }}</p>
+
+            <div class="d-flex gap-3 text-muted small mb-3">
+              <span>{{ biz.services.count }} usluga</span>
+              <span>{{ biz.staff.count }} osoblja</span>
+              <span>{{ biz.appointments.filter.count }} termina</span>
+            </div>
+
+            {% with sub=biz.subscription %}
+            {% if sub %}
+            <div class="mb-3">
+              {% if sub.status == 'trial' %}
+              <span class="badge" style="background:#fef3c7;color:#92400e;">
+                Trial — još {{ sub.days_remaining }} dana
+              </span>
+              {% elif sub.status == 'active' %}
+              <span class="badge" style="background:#d1fae5;color:#065f46;">
+                Aktivan — do {{ sub.effective_end|date:"d.m.Y" }}
+              </span>
+              {% else %}
+              <span class="badge bg-danger">Pretplata istekla</span>
+              {% endif %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="d-flex gap-2">
+              <a href="{% url 'business_detail' biz.slug %}" class="btn btn-sm btn-outline-secondary rounded-3 flex-fill">
+                Pregled
+              </a>
+              <a href="{% url 'edit_business' biz.slug %}" class="btn btn-sm fw-600 rounded-3 flex-fill"
+                 style="background:var(--primary);color:white;">
+                Uredi
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="text-center py-5">
+      <div style="font-size:4rem;">🏢</div>
+      <h3 class="fw-700 mt-3">Nemate registrovan biznis</h3>
+      <p class="text-muted">Registrujte vaš prvi biznis i počnite primati rezervacije.</p>
+      <a href="{% url 'register_business' %}" class="btn fw-700 mt-2"
+         style="background:var(--primary);color:white;border-radius:12px;padding:.75rem 2rem;">
+        Registruj biznis
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

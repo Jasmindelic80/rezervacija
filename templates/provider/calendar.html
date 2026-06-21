@@ -1,0 +1,251 @@
+{% extends 'provider/base.html' %}
+{% block title %}Kalendar — {{ business.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cal-nav { display:flex; align-items:center; gap:1rem; }
+  .cal-nav a { display:flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:8px; border:1px solid var(--border);
+    text-decoration:none; color:var(--text); font-size:1rem;
+    background:white; transition:background .15s; }
+  .cal-nav a:hover { background:var(--primary-light); }
+
+  .cal-grid { width:100%; border-collapse:separate; border-spacing:3px; }
+  .cal-grid th { text-align:center; font-size:.7rem; font-weight:700;
+    color:var(--muted); padding:.4rem 0; text-transform:uppercase; }
+  .cal-cell {
+    background:white; border-radius:8px; padding:.4rem .5rem;
+    vertical-align:top; min-height:62px; width:calc(100%/7);
+    border:2px solid transparent; cursor:pointer; transition:all .15s;
+  }
+  .cal-cell:hover { border-color:var(--primary); background:var(--primary-light); }
+  .cal-cell.today { border-color:var(--primary); }
+  .cal-cell.selected { border-color:var(--primary); background:var(--primary-light); }
+  .cal-cell.empty { background:#f9fafb; cursor:default; }
+  .cal-cell.empty:hover { border-color:transparent; background:#f9fafb; }
+  .cal-cell.past { background:#f3f4f6; }
+  .cal-cell.past .cal-day-num { color:#9ca3af; }
+  .cal-cell.past:hover { border-color:#d1d5db; background:#e5e7eb; }
+  .cal-cell.past .cal-count { opacity:.65; }
+  .cal-day-num { font-size:.8rem; font-weight:700; margin-bottom:.2rem; }
+  .cal-cell.today .cal-day-num { color:var(--primary); }
+  .cal-count { font-size:.65rem; font-weight:700; border-radius:20px;
+    padding:1px 5px; display:inline-block; margin-bottom:1px; }
+  .cal-count.confirmed { background:#d1fae5; color:#065f46; }
+  .cal-count.pending { background:#fef3c7; color:#92400e; }
+
+  /* Day panel (desna kolona) */
+  .day-panel-wrap { position:sticky; top:80px; }
+  #dayPanel { background:white; border-radius:12px;
+    border:1px solid var(--border); padding:1.25rem; min-height:200px; }
+  .appt-row { display:flex; align-items:center; gap:.6rem;
+    padding:.5rem .65rem; border-radius:8px; margin-bottom:.35rem; background:#f9fafb;
+    border-left:3px solid var(--primary); }
+  .appt-row.pending { border-color:#f59e0b; }
+  .appt-row.cancelled_client, .appt-row.cancelled_business { border-color:#ef4444; opacity:.7; }
+  .appt-row.completed { border-color:#6b7280; }
+  .slot-chip { background:#f3f4f6; border-radius:20px; padding:2px 10px;
+    font-size:.75rem; font-weight:600; color:#374151; display:inline-block; margin:2px; }
+  .panel-section-title { font-size:.7rem; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.05em; margin-bottom:.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="fw-800 fs-3 mb-1">Kalendar</h1>
+    <p class="text-muted mb-0">{{ business.name }}</p>
+  </div>
+  <a href="{% url 'provider_appointment_create' business.slug %}" class="btn fw-700"
+     style="background:var(--primary);color:white;border-radius:8px;padding:.5rem 1.2rem;">
+    ➕ Ručni termin
+  </a>
+</div>
+
+<!-- Dva stupca: kalendar lijevo, panel desno -->
+<div class="row g-4">
+
+  <!-- Kalendar -->
+  <div class="col-lg-7">
+    <div class="cal-nav mb-3">
+      <a href="?year={{ prev_year }}&month={{ prev_month }}">‹</a>
+      <h5 class="fw-800 mb-0 flex-grow-1 text-center">{{ month_name }} {{ year }}</h5>
+      <a href="?year={{ next_year }}&month={{ next_month }}">›</a>
+    </div>
+
+    <div class="card p-3">
+      <table class="cal-grid">
+        <thead>
+          <tr>
+            <th>Pon</th><th>Uto</th><th>Sri</th><th>Čet</th><th>Pet</th><th>Sub</th><th>Ned</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for week in calendar %}
+          <tr>
+            {% for day_num in week %}
+            {% if day_num == 0 %}
+            <td class="cal-cell empty"></td>
+            {% else %}
+              {% with cell_date=year|stringformat:"04d" %}
+              <td class="cal-cell {% if day_num == today.day and month == today.month and year == today.year %}today{% elif day_num < past_threshold %}past{% endif %}"
+                  data-date="{{ year }}-{{ month|stringformat:"02d" }}-{{ day_num|stringformat:"02d" }}"
+                  onclick="loadDay(this)">
+                <div class="cal-day-num">{{ day_num }}</div>
+                {% with d_str=year|stringformat:"s" %}
+                {% for d, counts in day_counts.items %}
+                  {% if d.day == day_num and d.month == month and d.year == year %}
+                    {% if counts.confirmed %}<span class="cal-count confirmed">{{ counts.confirmed }} pot.</span>{% endif %}
+                    {% if counts.pending %}<span class="cal-count pending">{{ counts.pending }} čeka</span>{% endif %}
+                  {% endif %}
+                {% endfor %}
+                {% endwith %}
+              </td>
+              {% endwith %}
+            {% endif %}
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Panel za odabrani dan -->
+  <div class="col-lg-5">
+    <div class="day-panel-wrap">
+      <div id="dayPanel">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="fw-800 mb-0" id="dayPanelTitle" style="font-size:1rem;">
+            Odaberite dan
+          </h6>
+          <button onclick="clearPanel()"
+                  id="panelCloseBtn" style="display:none;"
+                  class="btn btn-sm btn-outline-secondary rounded-3 py-0">✕</button>
+        </div>
+
+        <div id="panelBody" class="text-muted small" style="color:#9ca3af;">
+          Kliknite na dan u kalendaru da vidite termine i slobodne slotove.
+        </div>
+
+        <!-- Slobodni slotovi -->
+        <div id="freeSlotsSection" style="display:none;">
+          <div class="panel-section-title">🟢 Slobodni termini</div>
+          <div id="dayFreeSlots" class="d-flex flex-wrap gap-1 mb-4"></div>
+        </div>
+
+        <!-- Termini -->
+        <div id="appointmentsSection" style="display:none;">
+          <div class="panel-section-title">📋 Rezervacije</div>
+          <div id="dayAppointments"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% block extra_js %}
+<script>
+const calDayUrl = "{% url 'provider_calendar_day' business.slug %}";
+const csrfToken = "{{ csrf_token }}";
+let activeCell = null;
+
+function clearPanel() {
+  if (activeCell) activeCell.classList.remove('selected');
+  activeCell = null;
+  document.getElementById('dayPanelTitle').textContent = 'Odaberite dan';
+  document.getElementById('panelBody').style.display = '';
+  document.getElementById('panelCloseBtn').style.display = 'none';
+  document.getElementById('freeSlotsSection').style.display = 'none';
+  document.getElementById('appointmentsSection').style.display = 'none';
+}
+
+function loadDay(cell) {
+  const d = cell.dataset.date;
+  if (!d) return;
+
+  if (activeCell) activeCell.classList.remove('selected');
+  cell.classList.add('selected');
+  activeCell = cell;
+
+  const [y, m, day] = d.split('-');
+  const months = ['','Januar','Februar','Mart','April','Maj','Juni','Juli','August','Septembar','Oktobar','Novembar','Decembar'];
+  document.getElementById('dayPanelTitle').textContent = `${parseInt(day)}. ${months[parseInt(m)]} ${y}`;
+  document.getElementById('panelCloseBtn').style.display = '';
+  document.getElementById('panelBody').style.display = 'none';
+
+  document.getElementById('freeSlotsSection').style.display = 'none';
+  document.getElementById('appointmentsSection').style.display = 'none';
+  document.getElementById('dayFreeSlots').innerHTML = '<span class="text-muted small">Učitavam...</span>';
+  document.getElementById('dayAppointments').innerHTML = '<div class="text-muted small">Učitavam...</div>';
+
+  fetch(`${calDayUrl}?date=${d}`)
+    .then(r => r.json())
+    .then(data => {
+      // Slobodni slotovi — sakriti za prošle dane
+      const slotsEl = document.getElementById('dayFreeSlots');
+      if (data.is_past) {
+        document.getElementById('freeSlotsSection').style.display = 'none';
+      } else {
+        document.getElementById('freeSlotsSection').style.display = 'block';
+        if (data.free_slots.length === 0) {
+          slotsEl.innerHTML = '<span class="text-muted small">Nema slobodnih termina.</span>';
+        } else {
+          slotsEl.innerHTML = data.free_slots.map(s =>
+            `<span class="slot-chip">${s}</span>`
+          ).join('');
+        }
+      }
+
+      // Termini
+      const apptEl = document.getElementById('dayAppointments');
+      document.getElementById('appointmentsSection').style.display = 'block';
+      const cancelUrl = id => `/termin/termin/${id}/akcija/`;
+      if (data.appointments.length === 0) {
+        apptEl.innerHTML = '<div class="text-muted small">Nema rezervacija.</div>';
+      } else {
+        apptEl.innerHTML = data.appointments.map(a => `
+          <div class="appt-row ${a.status}">
+            <div style="min-width:48px;font-size:.82rem;font-weight:700;cursor:pointer"
+                 onclick="window.location='${a.url}'">${a.time}</div>
+            <div style="flex:1;cursor:pointer;min-width:0" onclick="window.location='${a.url}'">
+              <div class="fw-700" style="font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.client}</div>
+              <div class="text-muted" style="font-size:.72rem;">${a.service}${a.staff !== '—' ? ' · '+a.staff : ''}</div>
+            </div>
+            <span class="badge rounded-pill" style="font-size:.65rem;white-space:nowrap;
+              background:${a.status==='confirmed'?'#d1fae5':a.status==='pending'?'#fef3c7':a.status.startsWith('cancel')?'#fee2e2':'#f3f4f6'};
+              color:${a.status==='confirmed'?'#065f46':a.status==='pending'?'#92400e':a.status.startsWith('cancel')?'#991b1b':'#374151'}">
+              ${a.status_display}
+            </span>
+            ${(a.status==='pending'||a.status==='confirmed') ? `
+            <form method="post" action="${cancelUrl(a.id)}"
+                  onsubmit="return confirm('Oslobodi ovaj termin?')" style="margin:0">
+              <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+              <input type="hidden" name="action" value="cancel">
+              <button type="submit" title="Oslobodi termin"
+                style="background:#fee2e2;color:#991b1b;border:none;border-radius:6px;
+                       padding:2px 6px;font-weight:700;cursor:pointer;font-size:.75rem;">✕</button>
+            </form>` : ''}
+          </div>
+        `).join('');
+      }
+    })
+    .catch(() => {
+      document.getElementById('freeSlotsSection').style.display = 'block';
+      document.getElementById('dayFreeSlots').innerHTML = '';
+      document.getElementById('appointmentsSection').style.display = 'block';
+      document.getElementById('dayAppointments').innerHTML = '<div class="text-danger small">Greška pri učitavanju.</div>';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const todayCell = document.querySelector('.cal-cell.today');
+  if (todayCell) loadDay(todayCell);
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Pošalji dokaz uplate{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:540px">
+  <h2 class="fw-bold mb-4">Upload dokaza uplate</h2>
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <p class="text-muted small mb-3">
+        Referentni broj: <strong class="font-monospace">{{ payment.bank_reference }}</strong>
+        &mdash; Iznos: <strong>{{ payment.amount }} BAM</strong>
+      </p>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label fw-bold">Dokaz uplate (slika ili PDF)</label>
+          <input type="file" name="proof" class="form-control" accept="image/*,.pdf" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Napomena</label>
+          <textarea name="notes" class="form-control" rows="2" placeholder="Opcionalno"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Pošalji</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

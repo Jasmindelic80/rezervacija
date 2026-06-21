@@ -1,4 +1,4 @@
-import random
+import secrets
 import string
 from datetime import timedelta
 from django.db import models
@@ -28,7 +28,7 @@ class User(AbstractUser):
 
 
 class PhoneOTP(models.Model):
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(max_length=254)
     otp = models.CharField(max_length=6)
     purpose = models.CharField(
         max_length=20,
@@ -54,7 +54,7 @@ class PhoneOTP(models.Model):
 
     @classmethod
     def generate_otp(cls):
-        return ''.join(random.choices(string.digits, k=6))
+        return ''.join(secrets.choice(string.digits) for _ in range(6))
 
     @classmethod
     def create_for_phone(cls, phone, purpose='register'):

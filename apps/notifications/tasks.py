@@ -1,9 +1,78 @@
 from celery import shared_task
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
 from datetime import timedelta
 import logging
 
+from .dispatcher import dispatcher
+
 logger = logging.getLogger(__name__)
+
+
+def _send_email_reminder(appt, message_type: str):
+    """Email podsjetnik kao fallback ili primarni kanal."""
+    if not appt.client.email:
+        return
+
+    subjects = {
+        'reminder_24h': f'Podsjetnik: Vaš termin sutra u {appt.start_datetime:%H:%M}',
+        'reminder_1h':  f'Podsjetnik: Vaš termin za sat vremena ({appt.start_datetime:%H:%M})',
+        'confirmation': f'Potvrda termina — {appt.business.name}',
+        'cancellation': f'Termin otkazan — {appt.business.name}',
+    }
+    service_name = appt.service.name if appt.service else '—'
+    staff_text = f', radnik: {appt.staff.name}' if appt.staff else ''
+    cancel_link = f"{settings.SITE_URL}/termin/otkazi/{appt.pk}/" if hasattr(settings, 'SITE_URL') else ''
+
+    bodies = {
+        'reminder_24h': (
+            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
+            f"Podsjećamo vas da imate termin sutra:\n\n"
+            f"  Biznis:  {appt.business.name}\n"
+            f"  Usluga:  {service_name}{staff_text}\n"
+            f"  Datum:   {appt.start_datetime:%d.%m.%Y}\n"
+            f"  Vrijeme: {appt.start_datetime:%H:%M}\n\n"
+            f"{'Za otkazivanje: ' + cancel_link if cancel_link else ''}\n\n"
+            f"Vidimo se!\nRezervišiBiH tim"
+        ),
+        'reminder_1h': (
+            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
+            f"Vaš termin počinje za sat vremena!\n\n"
+            f"  Biznis:  {appt.business.name}\n"
+            f"  Usluga:  {service_name}{staff_text}\n"
+            f"  Vrijeme: {appt.start_datetime:%H:%M}\n\n"
+            f"RezervišiBiH tim"
+        ),
+        'confirmation': (
+            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
+            f"Vaš termin je potvrđen:\n\n"
+            f"  Biznis:  {appt.business.name}\n"
+            f"  Usluga:  {service_name}{staff_text}\n"
+            f"  Datum:   {appt.start_datetime:%d.%m.%Y}\n"
+            f"  Vrijeme: {appt.start_datetime:%H:%M}\n\n"
+            f"{'Za otkazivanje: ' + cancel_link if cancel_link else ''}\n\n"
+            f"RezervišiBiH tim"
+        ),
+        'cancellation': (
+            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
+            f"Vaš termin u {appt.business.name} "
+            f"({appt.start_datetime:%d.%m.%Y u %H:%M}) je otkazan.\n\n"
+            f"RezervišiBiH tim"
+        ),
+    }
+
+    try:
+        send_mail(
+            subject=subjects.get(message_type, 'Obavijest — RezervišiBiH'),
+            message=bodies.get(message_type, ''),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[appt.client.email],
+            fail_silently=True,
+        )
+        logger.info(f"Email {message_type} → {appt.client.email}")
+    except Exception as e:
+        logger.error(f"Email greška: {e}")
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
@@ -29,71 +98,44 @@ def send_appointment_confirmation(self, appointment_id: str):
 
 @shared_task
 def send_appointment_reminders():
-    """
-    Celery Beat periodic task — pokreće se svakih sat vremena.
-    Šalje podsjetnike za termine u sljedećih 24h i 2h.
-
-    # celery_beat schedule u settings.py:
-    # CELERY_BEAT_SCHEDULE = {
-    #     'send-reminders': {
-    #         'task': 'apps.notifications.tasks.send_appointment_reminders',
-    #         'schedule': crontab(minute=0),  # Svaki sat
-    #     },
-    # }
-    """
+    """Celery Beat — svaki sat. Šalje podsjetnike 24h i 1h unaprijed."""
     from apps.appointments.models import Appointment
+    from apps.notifications.models import NotificationLog
     now = timezone.now()
+    sent_24h = sent_1h = 0
 
-    # Podsjetnik 24h unaprijed (u prozoru 23h-25h od sada)
-    appts_24h = Appointment.objects.filter(
+    def _already_sent(appt, msg_type):
+        return NotificationLog.objects.filter(
+            appointment=appt,
+            message_type=msg_type,
+            status=NotificationLog.STATUS_SENT,
+        ).exists()
+
+    # Podsjetnik dan prije (prozor 23h–25h)
+    for appt in Appointment.objects.filter(
         start_datetime__gte=now + timedelta(hours=23),
         start_datetime__lte=now + timedelta(hours=25),
         status=Appointment.STATUS_CONFIRMED,
-    ).select_related('client', 'business', 'service', 'staff')
+    ).select_related('client', 'business', 'service', 'staff'):
+        if not _already_sent(appt, 'reminder_24h'):
+            dispatcher.send(user=appt.client, message_type='reminder_24h',
+                            context=_build_context(appt), appointment=appt)
+            _send_email_reminder(appt, 'reminder_24h')
+            sent_24h += 1
 
-    for appt in appts_24h:
-        # Provjeri nije li već poslan
-        from apps.notifications.models import NotificationLog
-        already_sent = NotificationLog.objects.filter(
-            appointment=appt,
-            message_type='reminder_24h',
-            status=NotificationLog.STATUS_SENT
-        ).exists()
-
-        if not already_sent:
-            dispatcher.send(
-                user=appt.client,
-                message_type='reminder_24h',
-                context=_build_context(appt),
-                appointment=appt
-            )
-
-    # Podsjetnik 2h unaprijed
-    appts_2h = Appointment.objects.filter(
-        start_datetime__gte=now + timedelta(hours=1, minutes=45),
-        start_datetime__lte=now + timedelta(hours=2, minutes=15),
+    # Podsjetnik sat prije (prozor 45min–75min)
+    for appt in Appointment.objects.filter(
+        start_datetime__gte=now + timedelta(minutes=45),
+        start_datetime__lte=now + timedelta(minutes=75),
         status=Appointment.STATUS_CONFIRMED,
-    ).select_related('client', 'business', 'service', 'staff')
+    ).select_related('client', 'business', 'service', 'staff'):
+        if not _already_sent(appt, 'reminder_1h'):
+            dispatcher.send(user=appt.client, message_type='reminder_2h',
+                            context=_build_context(appt), appointment=appt)
+            _send_email_reminder(appt, 'reminder_1h')
+            sent_1h += 1
 
-    for appt in appts_2h:
-        from apps.notifications.models import NotificationLog
-        already_sent = NotificationLog.objects.filter(
-            appointment=appt,
-            message_type='reminder_2h',
-            status=NotificationLog.STATUS_SENT
-        ).exists()
-
-        if not already_sent:
-            dispatcher.send(
-                user=appt.client,
-                message_type='reminder_2h',
-                context=_build_context(appt),
-                appointment=appt
-            )
-
-    logger.info(
-        f"Reminders: {appts_24h.count()} x 24h, {appts_2h.count()} x 2h"
-    )
+    logger.info(f"Reminders: {sent_24h} x 24h, {sent_1h} x 1h")
 
 
 @shared_task(bind=True, max_retries=3)
@@ -106,12 +148,9 @@ def send_cancellation_notification(self, appointment_id: str, cancelled_by: str 
         ).get(id=appointment_id)
 
         msg_type = 'cancellation' if cancelled_by == 'client' else 'cancellation_by_business'
-        dispatcher.send(
-            user=appt.client,
-            message_type=msg_type,
-            context=_build_context(appt),
-            appointment=appt
-        )
+        dispatcher.send(user=appt.client, message_type=msg_type,
+                        context=_build_context(appt), appointment=appt)
+        _send_email_reminder(appt, 'cancellation')
     except Exception as exc:
         raise self.retry(exc=exc)
 

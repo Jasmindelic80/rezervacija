@@ -1,0 +1,120 @@
+# Deutsche Übersetzungen
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+
+msgid "Rezervirajte termin online"
+msgstr "Termin online buchen"
+
+msgid "Rezervirajte termin za bilo koju uslugu u BiH"
+msgstr "Einen Termin für jeden Service in BiH buchen"
+
+msgid "Frizeri, kozmetičari, automehaničari, stomatolozi i još mnogo više — sve na jednom mjestu."
+msgstr "Friseure, Kosmetikerinnen, Mechaniker, Zahnärzte und vieles mehr — alles an einem Ort."
+
+msgid "Sve kategorije"
+msgstr "Alle Kategorien"
+
+msgid "Grad (npr. Sarajevo)"
+msgstr "Stadt (z.B. Sarajevo)"
+
+msgid "Šta tražite?"
+msgstr "Was suchen Sie?"
+
+msgid "Pretraži"
+msgstr "Suchen"
+
+msgid "Registriranih biznisa"
+msgstr "Registrierte Unternehmen"
+
+msgid "Kategorija usluga"
+msgstr "Servicekategorien"
+
+msgid "Rezervacija"
+msgstr "Termine"
+
+msgid "Kategorije usluga"
+msgstr "Servicekategorien"
+
+msgid "Izaberite vrstu usluge koja vam treba"
+msgstr "Wählen Sie die Art des Services"
+
+msgid "biznisa"
+msgstr "Unternehmen"
+
+msgid "Istaknuti biznisi"
+msgstr "Empfohlene Unternehmen"
+
+msgid "Najviše ocijenjeni pružatelji usluga"
+msgstr "Bestbewertete Dienstleister"
+
+msgid "Vidi sve"
+msgstr "Alle anzeigen"
+
+msgid "Slobodni termini"
+msgstr "Freie Termine"
+
+msgid "Još nema registriranih biznisa."
+msgstr "Noch keine registrierten Unternehmen."
+
+msgid "Budite prvi!"
+msgstr "Seien Sie der Erste!"
+
+msgid "Imate salon, servis ili ordinaciju?"
+msgstr "Haben Sie einen Salon, Werkstatt oder eine Praxis?"
+
+msgid "Registrujte se besplatno i počnite primati online rezervacije već danas. Viber i WhatsApp notifikacije uključene!"
+msgstr "Registrieren Sie sich kostenlos und empfangen Sie noch heute Online-Buchungen."
+
+msgid "Registruj biznis besplatno"
+msgstr "Unternehmen kostenlos registrieren"
+
+msgid "Rezervirajte termin za bilo koju uslugu u BiH — brzo i jednostavno."
+msgstr "Buchen Sie einen Termin für jeden Service in BiH — schnell und einfach."
+
+msgid "Usluge"
+msgstr "Dienstleistungen"
+
+msgid "Frizeri"
+msgstr "Friseure"
+
+msgid "Kozmetika"
+msgstr "Kosmetik"
+
+msgid "Automehaničari"
+msgstr "Autowerkstätten"
+
+msgid "Za biznise"
+msgstr "Für Unternehmen"
+
+msgid "Registruj biznis"
+msgstr "Unternehmen registrieren"
+
+msgid "Kako funkcioniše"
+msgstr "Wie es funktioniert"
+
+msgid "Kontakt"
+msgstr "Kontakt"
+
+msgid "Sva prava zadržana."
+msgstr "Alle Rechte vorbehalten."
+
+msgid "Moji termini"
+msgstr "Meine Termine"
+
+msgid "Notifikacije"
+msgstr "Benachrichtigungen"
+
+msgid "Postavke"
+msgstr "Einstellungen"
+
+msgid "Odjava"
+msgstr "Abmelden"
+
+msgid "Prijava"
+msgstr "Anmelden"
+
+msgid "Registracija"
+msgstr "Registrieren"

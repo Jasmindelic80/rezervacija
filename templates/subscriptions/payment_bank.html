@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Instrukcije za bankovnu uplatu{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:640px">
+  <h2 class="fw-bold mb-1">Bankovna uplata</h2>
+  <p class="text-muted mb-4">{{ business.name }}</p>
+
+  <div class="alert alert-info d-flex gap-2 mb-4">
+    <span>ℹ️</span>
+    <div>
+      Pošaljite uplatu na donji račun i <strong>obavezno navedite referentni broj</strong>.
+      Vaša pretplata bit će aktivirana u roku od <strong>24 sata</strong> nakon potvrde uplate.
+    </div>
+  </div>
+
+  <!-- Detalji uplata -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">Podaci za uplatu</h6>
+      <table class="table table-borderless mb-0">
+        <tr>
+          <td class="text-muted pe-3" style="width:160px">Primalac</td>
+          <td><strong>{{ bank_account_owner }}</strong></td>
+        </tr>
+        <tr>
+          <td class="text-muted">Banka</td>
+          <td>{{ bank_name }}</td>
+        </tr>
+        <tr>
+          <td class="text-muted">IBAN</td>
+          <td>
+            <strong class="font-monospace">{{ bank_iban }}</strong>
+            <button class="btn btn-sm btn-link p-0 ms-2" onclick="navigator.clipboard.writeText('{{ bank_iban }}');this.textContent='✓ Kopirano'">
+              📋 Kopiraj
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="text-muted">SWIFT/BIC</td>
+          <td class="font-monospace">{{ bank_swift }}</td>
+        </tr>
+        <tr class="table-warning">
+          <td class="text-muted fw-bold">Referentni broj</td>
+          <td>
+            <strong class="font-monospace fs-5">{{ payment.bank_reference }}</strong>
+            <button class="btn btn-sm btn-link p-0 ms-2" onclick="navigator.clipboard.writeText('{{ payment.bank_reference }}');this.textContent='✓ Kopirano'">
+              📋 Kopiraj
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="text-muted">Iznos</td>
+          <td><strong class="text-primary fs-5">{{ payment.amount }} BAM</strong></td>
+        </tr>
+        <tr>
+          <td class="text-muted">Svrha uplate</td>
+          <td>Pretplata RezervišiBiH — {{ business.name }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Upload dokaza -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h6 class="fw-bold mb-2">Ubrzajte aktivaciju — pošaljite dokaz uplate</h6>
+      <p class="text-muted small mb-3">
+        Opcionalno: uploadajte screenshot ili PDF potvrde uplate kako bismo brže aktivirali vašu pretplatu.
+      </p>
+      <form method="post" action="{% url 'payment_bank_upload' payment.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+          <input type="file" name="proof" class="form-control" accept="image/*,.pdf">
+        </div>
+        <div class="mb-3">
+          <textarea name="notes" class="form-control" rows="2"
+            placeholder="Napomena (opcionalno)"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">
+          Pošalji dokaz uplate
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <a href="{% url 'subscription_dashboard' %}" class="btn btn-link text-muted">
+      Preskočite — poslat ću uplate sami, bez uploada
+    </a>
+  </div>
+</div>
+{% endblock %}

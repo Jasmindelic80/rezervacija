@@ -1,0 +1,150 @@
+{% extends 'provider/base.html' %}
+{% block title %}Dashboard — BookBiH{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="fw-800 fs-3 mb-0">Dashboard</h1>
+  <a href="{% url 'register_business' %}" class="btn btn-sm fw-700"
+     style="background:var(--primary);color:white;border-radius:8px;padding:.45rem 1rem;">
+    + Novi biznis
+  </a>
+</div>
+
+{% if businesses %}
+{% for biz in businesses %}
+<div class="mb-5">
+  <h5 class="fw-700 mb-3">{{ biz.name }}
+    <a href="{% url 'edit_business' biz.slug %}" class="text-muted ms-2" style="font-size:.8rem;font-weight:600;">uredi ✏️</a>
+  </h5>
+
+  <!-- Stat kartice -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="val">{{ biz.today_confirmed }}</div>
+        <div class="lbl">Danas potvrđenih</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="val text-warning">
+          {{ biz.pending_count }}
+        </div>
+        <div class="lbl">Na čekanju</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        {% with sub=biz.subscription %}
+        {% if sub %}
+          {% if sub.status == 'trial' %}
+          <div class="val" style="font-size:1.4rem;color:#92400e;">{{ sub.days_remaining }}d</div>
+          <div class="lbl">Trial preostalo</div>
+          {% elif sub.status == 'active' %}
+          <div class="val" style="font-size:1rem;">{{ sub.effective_end|date:"d.m.Y" }}</div>
+          <div class="lbl">Pretplata do</div>
+          {% else %}
+          <div class="val" style="color:#ef4444;font-size:1rem;">Istekla</div>
+          <div class="lbl">Pretplata</div>
+          {% endif %}
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="val">{{ biz.services.count }}</div>
+        <div class="lbl">Usluga</div>
+      </div>
+    </div>
+  </div>
+
+  {% if not biz.working_hours.exists %}
+  <div class="alert mb-3" style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:.85rem 1rem;font-size:.875rem;">
+    ⚠️ <strong>Radno vrijeme nije postavljeno.</strong>
+    Klijenti ne mogu vidjeti slobodne termine.
+    <a href="{% url 'provider_working_hours' biz.slug %}" class="fw-700 ms-1" style="color:#92400e;">Postavi radno vrijeme →</a>
+  </div>
+  {% endif %}
+  {% if not biz.services.exists %}
+  <div class="alert mb-3" style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:.85rem 1rem;font-size:.875rem;">
+    ⚠️ <strong>Nema dodanih usluga.</strong>
+    Klijenti ne mogu rezervisati bez usluga.
+    <a href="{% url 'manage_services' biz.slug %}" class="fw-700 ms-1" style="color:#92400e;">Dodaj usluge →</a>
+  </div>
+  {% endif %}
+
+  <!-- Brze akcije -->
+  <div class="d-flex gap-2 flex-wrap mb-4">
+    <a href="{% url 'provider_calendar' biz.slug %}" class="btn btn-sm fw-600 rounded-3"
+       style="background:var(--primary);color:white;">📅 Kalendar</a>
+    <a href="{% url 'provider_appointments' biz.slug %}" class="btn btn-sm btn-outline-secondary fw-600 rounded-3">📋 Lista termina</a>
+    <a href="{% url 'provider_appointment_create' biz.slug %}" class="btn btn-sm btn-outline-secondary fw-600 rounded-3">
+      ➕ Ručni termin
+    </a>
+    <a href="{% url 'provider_working_hours' biz.slug %}" class="btn btn-sm btn-outline-secondary fw-600 rounded-3">
+      🕐 Radno vrijeme
+    </a>
+    <a href="{% url 'provider_blocked_slots' biz.slug %}" class="btn btn-sm btn-outline-secondary fw-600 rounded-3">
+      🚫 Blokade
+    </a>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Termini danas -->
+<h5 class="fw-700 mb-3">Termini danas — {{ today|date:"d.m.Y" }}</h5>
+{% if today_appointments %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table p-table mb-0">
+      <thead>
+        <tr>
+          <th>Vrijeme</th>
+          <th>Klijent</th>
+          <th>Usluga</th>
+          <th>Radnik</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in today_appointments %}
+        <tr>
+          <td class="fw-700">{{ appt.start_datetime|date:"H:i" }}</td>
+          <td>{{ appt.client.get_full_name|default:appt.client.username }}</td>
+          <td>{{ appt.service.name|default:"—" }}</td>
+          <td>{{ appt.staff.name|default:"—" }}</td>
+          <td>
+            <span class="badge rounded-pill badge-{{ appt.status }}">
+              {{ appt.get_status_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'provider_appointment_detail' appt.pk %}" class="btn btn-sm btn-outline-secondary rounded-3 py-0">Otvori</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-4 text-muted">
+  <div style="font-size:2.5rem;">📅</div>
+  <p class="mt-2 mb-0">Nema termina za danas.</p>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+  <div style="font-size:4rem;">🏢</div>
+  <h3 class="fw-700 mt-3">Nemate registrovan biznis</h3>
+  <p class="text-muted">Registrujte vaš prvi biznis i počnite primati rezervacije.</p>
+  <a href="{% url 'register_business' %}" class="btn fw-700 mt-2"
+     style="background:var(--primary);color:white;border-radius:12px;padding:.75rem 2rem;">
+    Registruj biznis
+  </a>
+</div>
+{% endif %}
+{% endblock %}

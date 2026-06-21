@@ -1,0 +1,186 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ request.LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Provider — BookBiH{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1a6b4a;
+      --primary-dark: #0f4a32;
+      --primary-light: #e8f5ee;
+      --sidebar-w: 240px;
+      --topbar-h: 56px;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); background: #f3f4f6; margin: 0; }
+
+    /* Topbar */
+    .p-topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--topbar-h);
+      background: white; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 1rem;
+      z-index: 100; gap: 1rem;
+    }
+    .p-topbar .brand { font-weight: 800; font-size: 1.1rem; color: var(--primary); text-decoration: none; flex: 1; }
+    .p-topbar .biz-name { font-size: .85rem; font-weight: 600; color: var(--muted); }
+    .p-topbar .btn-sidebar-toggle { border: none; background: none; cursor: pointer; padding: .25rem .5rem; border-radius: 6px; }
+    .p-topbar .btn-sidebar-toggle:hover { background: var(--primary-light); }
+
+    /* Sidebar */
+    .p-sidebar {
+      position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
+      width: var(--sidebar-w); background: white; border-right: 1px solid var(--border);
+      overflow-y: auto; z-index: 90; transition: transform .25s;
+      padding: 1rem 0;
+    }
+    .p-sidebar.hidden { transform: translateX(-100%); }
+
+    .nav-section { padding: .25rem 1rem; font-size: .7rem; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-top: .75rem; }
+    .p-sidebar a {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .55rem 1.25rem; font-size: .875rem; font-weight: 600;
+      color: var(--text); text-decoration: none; border-radius: 0;
+      transition: background .15s, color .15s;
+    }
+    .p-sidebar a:hover { background: var(--primary-light); color: var(--primary); }
+    .p-sidebar a.active { background: var(--primary-light); color: var(--primary); border-left: 3px solid var(--primary); }
+    .p-sidebar .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    /* Main content */
+    .p-main {
+      margin-left: var(--sidebar-w); margin-top: var(--topbar-h);
+      padding: 1.75rem; min-height: calc(100vh - var(--topbar-h));
+      transition: margin-left .25s;
+    }
+    .p-main.full { margin-left: 0; }
+
+    /* Messages */
+    .msgs { position: fixed; top: 66px; right: 1rem; z-index: 200; width: 320px; }
+    .msg-item { background: white; border-radius: 10px; padding: .8rem 1rem;
+      border-left: 4px solid var(--primary); box-shadow: 0 4px 20px rgba(0,0,0,.1);
+      margin-bottom: .5rem; font-size: .875rem; font-weight: 600;
+      animation: msgIn .3s ease; }
+    .msg-item.error { border-color: #ef4444; }
+    .msg-item.warning { border-color: #f59e0b; }
+    @keyframes msgIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; } }
+
+    /* Cards */
+    .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .card-header { background: white; border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; border-radius: 12px 12px 0 0 !important; }
+    .stat-card { background: white; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .stat-card .val { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .stat-card .lbl { font-size: .8rem; color: var(--muted); font-weight: 600; margin-top: .1rem; }
+
+    /* Badges */
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-confirmed { background: #d1fae5; color: #065f46; }
+    .badge-completed { background: #dbeafe; color: #1e40af; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+
+    /* Table */
+    .p-table th { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; background: #f9fafb; }
+    .p-table td { vertical-align: middle; font-size: .875rem; }
+
+    @media (max-width: 768px) {
+      .p-sidebar { transform: translateX(-100%); }
+      .p-sidebar.open { transform: translateX(0); }
+      .p-main { margin-left: 0; }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="p-topbar">
+  <button class="btn-sidebar-toggle" id="sidebarToggle">☰</button>
+  <a href="{% url 'provider_dashboard' %}" class="brand">📅 BookBiH</a>
+  {% if active_business %}
+  <span class="biz-name">{{ active_business.name }}</span>
+  {% endif %}
+  <div class="ms-auto d-flex align-items-center gap-3">
+    <a href="{% url 'home' %}" class="text-muted" style="font-size:.8rem;text-decoration:none;">← Korisnički dio</a>
+    <a href="{% url 'logout' %}" class="text-muted" style="font-size:.8rem;text-decoration:none;">Odjava</a>
+  </div>
+</div>
+
+<nav class="p-sidebar" id="sidebar">
+  <div class="nav-section">Pregled</div>
+  <a href="{% url 'provider_dashboard' %}" class="{% if request.resolver_match.url_name == 'provider_dashboard' %}active{% endif %}">
+    <span class="icon">🏠</span> Dashboard
+  </a>
+
+  {% if businesses %}
+  {% for biz in businesses %}
+  <div class="nav-section">{{ biz.name|truncatechars:22 }}</div>
+  <a href="{% url 'provider_calendar' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'provider_calendar' %}active{% endif %}">
+    <span class="icon">📅</span> Kalendar
+  </a>
+  <a href="{% url 'provider_appointments' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'provider_appointments' and active_business.slug == biz.slug %}active{% endif %}">
+    <span class="icon">📋</span> Lista termina
+  </a>
+  <a href="{% url 'provider_working_hours' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'provider_working_hours' %}active{% endif %}">
+    <span class="icon">🕐</span> Radno vrijeme
+  </a>
+  <a href="{% url 'provider_blocked_slots' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'provider_blocked_slots' %}active{% endif %}">
+    <span class="icon">🚫</span> Blokade
+  </a>
+  <a href="{% url 'edit_business' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'edit_business' %}active{% endif %}">
+    <span class="icon">✏️</span> Uredi biznis
+  </a>
+  <a href="{% url 'manage_services' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'manage_services' %}active{% endif %}">
+    <span class="icon">🛎️</span> Usluge
+  </a>
+  <a href="{% url 'business_detail' biz.slug %}" target="_blank">
+    <span class="icon">🌐</span> Javna stranica
+  </a>
+  {% endfor %}
+  {% endif %}
+
+  <div class="nav-section">Račun</div>
+  <a href="{% url 'register_business' %}"><span class="icon">➕</span> Novi biznis</a>
+  <a href="{% url 'subscription_expired' %}"><span class="icon">💳</span> Pretplata</a>
+  <a href="{% url 'profile_settings' %}"><span class="icon">⚙️</span> Postavke</a>
+</nav>
+
+{% if messages %}
+<div class="msgs">
+  {% for msg in messages %}
+  <div class="msg-item {{ msg.tags }}">{{ msg }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="p-main" id="mainContent">
+  {% block content %}{% endblock %}
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('mainContent');
+  document.getElementById('sidebarToggle').addEventListener('click', () => {
+    sidebar.classList.toggle('hidden');
+    main.classList.toggle('full');
+  });
+  // Auto-hide messages
+  setTimeout(() => {
+    document.querySelectorAll('.msg-item').forEach(el => el.style.opacity = '0');
+  }, 4000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

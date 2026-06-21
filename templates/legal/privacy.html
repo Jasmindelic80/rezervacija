@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}Politika privatnosti — BookBiH{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:760px;">
+  <h1 style="font-size:2rem;font-weight:800;color:#1a6b4a;margin-bottom:.5rem;">Politika privatnosti</h1>
+  <p class="text-muted mb-4">Posljednje ažuriranje: juni 2026. | U skladu sa GDPR (EU) 2016/679</p>
+
+  <!-- 1. Kontrolor -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">1. Ko je odgovoran za vaše podatke?</h5>
+    <p class="mb-1 text-muted" style="font-size:.95rem;">
+      Kontrolor obrade ličnih podataka je:
+    </p>
+    <p class="mb-0" style="font-size:.95rem;">
+      <strong>BookBiH</strong><br>
+      📧 <a href="mailto:info@bookbih.ba" style="color:#1a6b4a;">info@bookbih.ba</a><br>
+      📞 <a href="tel:+38700000000" style="color:#1a6b4a;">+387 xx xxx xxx</a>
+    </p>
+  </div>
+
+  <!-- 2. Koji podaci -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">2. Koje podatke prikupljamo?</h5>
+    <div style="font-size:.95rem;">
+      <p class="mb-2"><strong>Podaci pri registraciji:</strong></p>
+      <ul class="text-muted mb-3">
+        <li>Email adresa (obavezno — za verifikaciju i komunikaciju)</li>
+        <li>Ime i prezime</li>
+        <li>Broj telefona (opciono)</li>
+        <li>Lozinka (pohranjena u šifriranom obliku)</li>
+        <li>Uloga na platformi (klijent / pružatelj usluga)</li>
+      </ul>
+      <p class="mb-2"><strong>Podaci pri rezervaciji termina:</strong></p>
+      <ul class="text-muted mb-3">
+        <li>Datum i vrijeme termina</li>
+        <li>Odabrana usluga i pružatelj usluge</li>
+        <li>Napomene za termin (ako se unese)</li>
+      </ul>
+      <p class="mb-2"><strong>Tehnički podaci:</strong></p>
+      <ul class="text-muted mb-0">
+        <li>IP adresa (sistemski logovi)</li>
+        <li>Pretraživač i uređaj (HTTP zaglavlje)</li>
+        <li>Session kolačići (za prijavu)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3. Svrha -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">3. Zašto obrađujemo vaše podatke?</h5>
+    <div style="font-size:.95rem;" class="text-muted">
+      <p class="mb-2">Vaše podatke koristimo isključivo za:</p>
+      <ul class="mb-0">
+        <li>Verifikaciju email adrese pri registraciji (slanje OTP koda)</li>
+        <li>Upravljanje vašim nalogom i terminima</li>
+        <li>Slanje potvrda i podsjetnika za termine (email)</li>
+        <li>Kontakt u slučaju promjene ili otkazivanja termina</li>
+        <li>Sigurnost platforme i sprječavanje zloupotrebe</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4. Pravni osnov -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">4. Pravni osnov obrade (GDPR čl. 6)</h5>
+    <div style="font-size:.95rem;" class="text-muted">
+      <ul class="mb-0">
+        <li><strong>Izvršenje ugovora</strong> (čl. 6/1/b) — za registraciju i upravljanje terminima</li>
+        <li><strong>Legitimni interes</strong> (čl. 6/1/f) — za sigurnost platforme i sistemske logove</li>
+        <li><strong>Pristanak</strong> (čl. 6/1/a) — za marketinšku komunikaciju (ako je zatražena)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 5. Treće strane -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">5. Dijeljenje podataka s trećim stranama</h5>
+    <div style="font-size:.95rem;">
+      <p class="text-muted mb-3">Vaše podatke ne prodajemo. Koristimo sljedeće externe servise:</p>
+      <div class="table-responsive">
+        <table class="table table-sm" style="font-size:.9rem;">
+          <thead><tr><th>Servis</th><th>Svrha</th><th>Zemlja</th></tr></thead>
+          <tbody class="text-muted">
+            <tr><td><strong>Brevo (Sendinblue)</strong></td><td>Slanje emailova</td><td>Francuska (EU)</td></tr>
+            <tr><td><strong>Google OAuth</strong></td><td>Prijava putem Google naloga</td><td>SAD</td></tr>
+            <tr><td><strong>Facebook OAuth</strong></td><td>Prijava putem Facebook naloga</td><td>SAD</td></tr>
+            <tr><td><strong>PayPal</strong></td><td>Obrada plaćanja pretplate</td><td>SAD</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mb-0 text-muted" style="font-size:.85rem;">
+        Prenos podataka van EU vrši se na osnovu standardnih ugovornih klauzula (SCC) u skladu sa GDPR čl. 46.
+      </p>
+    </div>
+  </div>
+
+  <!-- 6. Čuvanje -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">6. Koliko dugo čuvamo podatke?</h5>
+    <div style="font-size:.95rem;" class="text-muted">
+      <ul class="mb-0">
+        <li>Nalog i podaci korisnika — dok je nalog aktivan + 1 godina nakon brisanja</li>
+        <li>Podaci o terminima — 3 godine (zakonska obaveza evidencije)</li>
+        <li>OTP kodovi — brišu se odmah nakon verifikacije ili isteka (10 min)</li>
+        <li>Sistemski logovi — 90 dana</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 7. Kolačići -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">7. Kolačići (cookies)</h5>
+    <div style="font-size:.95rem;" class="text-muted">
+      <p class="mb-2">Koristimo isključivo neophodne kolačiće:</p>
+      <ul class="mb-0">
+        <li><strong>sessionid</strong> — za prijavu korisnika (brisanje pri zatvaranju preglednika)</li>
+        <li><strong>csrftoken</strong> — zaštita od CSRF napada</li>
+      </ul>
+      <p class="mt-2 mb-0">Ne koristimo analitičke ni marketinške kolačiće bez vašeg pristanka.</p>
+    </div>
+  </div>
+
+  <!-- 8. Vaša prava -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">8. Vaša prava prema GDPR</h5>
+    <div style="font-size:.95rem;" class="text-muted">
+      <p class="mb-2">Imate pravo na:</p>
+      <ul class="mb-3">
+        <li><strong>Pristup</strong> — uvid u podatke koje čuvamo o vama (čl. 15)</li>
+        <li><strong>Ispravku</strong> — korekcija netačnih podataka (čl. 16)</li>
+        <li><strong>Brisanje</strong> — "pravo na zaborav" (čl. 17)</li>
+        <li><strong>Prenosivost</strong> — export vaših podataka (čl. 20)</li>
+        <li><strong>Prigovor</strong> — na obradu baziranu na legitimnom interesu (čl. 21)</li>
+        <li><strong>Žalbu</strong> — nadzornom organu (Agencija za zaštitu ličnih podataka BiH ili BfDI u Njemačkoj)</li>
+      </ul>
+      <p class="mb-0">
+        Za ostvarivanje prava kontaktirajte nas na:
+        <a href="mailto:info@bookbih.ba" style="color:#1a6b4a;font-weight:600;">info@bookbih.ba</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- 9. Izmjene -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+    <h5 class="fw-bold mb-3" style="color:#1a6b4a;">9. Izmjene politike</h5>
+    <p class="mb-0 text-muted" style="font-size:.95rem;">
+      Zadržavamo pravo izmjene ove politike. O značajnim izmjenama obavijestit ćemo vas putem emaila.
+      Aktuelna verzija uvijek je dostupna na ovoj stranici.
+    </p>
+  </div>
+</div>
+{% endblock %}

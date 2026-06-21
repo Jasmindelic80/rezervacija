@@ -1,0 +1,72 @@
+# Bosanski prijevodi
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: bs\n"
+
+msgid "Rezervirajte termin za bilo koju uslugu u BiH"
+msgstr "Rezervirajte termin za bilo koju uslugu u BiH"
+
+msgid "Frizeri, kozmetičari, automehaničari, stomatolozi i još mnogo više — sve na jednom mjestu."
+msgstr "Frizeri, kozmetičari, automehaničari, stomatolozi i još mnogo više — sve na jednom mjestu."
+
+msgid "Sve kategorije"
+msgstr "Sve kategorije"
+
+msgid "Grad (npr. Sarajevo)"
+msgstr "Grad (npr. Sarajevo)"
+
+msgid "Šta tražite?"
+msgstr "Šta tražite?"
+
+msgid "Pretraži"
+msgstr "Pretraži"
+
+msgid "Registriranih biznisa"
+msgstr "Registriranih biznisa"
+
+msgid "Kategorija usluga"
+msgstr "Kategorija usluga"
+
+msgid "Rezervacija"
+msgstr "Rezervacija"
+
+msgid "Kategorije usluga"
+msgstr "Kategorije usluga"
+
+msgid "Izaberite vrstu usluge koja vam treba"
+msgstr "Izaberite vrstu usluge koja vam treba"
+
+msgid "biznisa"
+msgstr "biznisa"
+
+msgid "Istaknuti biznisi"
+msgstr "Istaknuti biznisi"
+
+msgid "Najviše ocijenjeni pružatelji usluga"
+msgstr "Najviše ocijenjeni pružatelji usluga"
+
+msgid "Vidi sve"
+msgstr "Vidi sve"
+
+msgid "Slobodni termini"
+msgstr "Slobodni termini"
+
+msgid "Još nema registriranih biznisa."
+msgstr "Još nema registriranih biznisa."
+
+msgid "Budite prvi!"
+msgstr "Budite prvi!"
+
+msgid "Imate salon, servis ili ordinaciju?"
+msgstr "Imate salon, servis ili ordinaciju?"
+
+msgid "Registrujte se besplatno i počnite primati online rezervacije već danas. Viber i WhatsApp notifikacije uključene!"
+msgstr "Registrujte se besplatno i počnite primati online rezervacije već danas. Viber i WhatsApp notifikacije uključene!"
+
+msgid "Registruj biznis besplatno"
+msgstr "Registruj biznis besplatno"
+
+msgid "Rezervirajte termin online"
+msgstr "Rezervirajte termin online"

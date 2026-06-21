@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Registracija biznisa — BookBiH{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <div class="text-center mb-4">
+        <h1 class="fw-800 fs-2">Registruj tvoj biznis</h1>
+        <p class="text-muted">Popuni osnovne podatke i počni primati rezervacije</p>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-3 p-4">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label fw-600">Naziv biznisa <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="npr. Frizerski salon Lejla" required value="{{ request.POST.name }}">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-600">Kategorija</label>
+            <select name="category" class="form-select">
+              <option value="">— Odaberi kategoriju —</option>
+              {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if request.POST.category == cat.id|stringformat:"s" %}selected{% endif %}>
+                {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-600">Grad <span class="text-danger">*</span></label>
+              <input type="text" name="city" class="form-control" placeholder="npr. Sarajevo" required value="{{ request.POST.city }}">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-600">Telefon <span class="text-danger">*</span></label>
+              <input type="text" name="phone" class="form-control" placeholder="061 000 000" required value="{{ request.POST.phone }}">
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-600">Adresa <span class="text-danger">*</span></label>
+            <input type="text" name="address" class="form-control" placeholder="Ulica i broj" required value="{{ request.POST.address }}">
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 fw-700 py-2" style="background:var(--primary);border:none;border-radius:10px;">
+            Registruj biznis
+          </button>
+        </form>
+      </div>
+
+      <p class="text-center text-muted mt-3" style="font-size:0.85rem;">
+        Nakon registracije imaš <strong>6 mjeseci besplatnog trial perioda</strong>.
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

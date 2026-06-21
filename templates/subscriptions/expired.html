@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Pretplata istekla{% endblock %}
+{% block content %}
+<div class="container py-5 text-center" style="max-width:580px">
+  <div style="font-size:4rem" class="mb-3">⏰</div>
+  <h2 class="fw-bold mb-2">Vaša pretplata je istekla</h2>
+  <p class="text-muted mb-4">
+    {% if sub and sub.status == 'trial' %}
+      Vaš besplatni probni period od 6 mjeseci je istekao.
+    {% else %}
+      Vaša pretplata je istekla. Aktivirajte je kako biste nastavili primati rezervacije.
+    {% endif %}
+  </p>
+
+  {% if business %}
+  <div class="card border-0 shadow-sm mb-4 text-start">
+    <div class="card-body">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="font-size:2rem">✅</div>
+        <div>
+          <div class="fw-bold">Sve vaše rezervacije su sačuvane</div>
+          <div class="text-muted small">Podaci biznisa {{ business.name }} su sigurni.</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div style="font-size:2rem">💳</div>
+        <div>
+          <div class="fw-bold">Samo {{ sub.monthly_price }} BAM / mjes.</div>
+          <div class="text-muted small">PayPal ili bankovna uplata.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <a href="{% url 'payment_choose' %}" class="btn btn-primary btn-lg px-5 mb-3">
+    Aktiviraj pretplatu
+  </a>
+  <br>
+  <a href="{% url 'subscription_dashboard' %}" class="btn btn-link text-muted">
+    Vidi status pretplate
+  </a>
+  {% endif %}
+
+  <p class="text-muted small mt-4">
+    Pitanja? Pišite nam na
+    <a href="mailto:podrska@rezervisi.ba">podrska@rezervisi.ba</a>
+  </p>
+</div>
+{% endblock %}

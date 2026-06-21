@@ -1,7 +1,9 @@
-"""
-config/settings.py — Kompletne Django postavke za RezervišiBiH
-"""
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+from django.utils.translation import gettext_lazy as _
+
+load_dotenv()
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,23 +11,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(BASE_DIR / '.env')
 
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-PROMIJENI-OVO-U-PRODUKCIJI')
-DEBUG = env('DEBUG', default=True)
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = False
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
+STATIC_ROOT = '/var/www/mojaapp/static/'
 
 # ── Aplikacije ────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'rosetta',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     # Third-party
     'crispy_forms',
     'crispy_bootstrap5',
     'django_filters',
     'django_celery_beat',
+    # allauth
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
     # Lokalne aplikacije
     'apps.accounts.apps.AccountsConfig',
     'apps.businesses.apps.BusinessesConfig',
@@ -33,17 +44,24 @@ INSTALLED_APPS = [
     'apps.availability.apps.AvailabilityConfig',
     'apps.appointments.apps.AppointmentsConfig',
     'apps.notifications.apps.NotificationsConfig',
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'config.middleware.DefaultLanguageMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.subscriptions.middleware.SubscriptionMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -66,7 +84,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # ── Baza podataka ─────────────────────────────────────────────
 DATABASES = {
-    'default': env.db('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mojadatabaza',
+        'USER': 'mojauser',
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
 
 # ── Autentifikacija ───────────────────────────────────────────
@@ -74,6 +99,36 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = '/prijava/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# allauth
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_LOGIN_ON_GET = False
+SOCIALACCOUNT_ADAPTER = 'apps.accounts.social_adapter.CustomSocialAccountAdapter'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            'client_id': env('GOOGLE_CLIENT_ID', default=''),
+            'secret': env('GOOGLE_CLIENT_SECRET', default=''),
+        }
+    },
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'APP': {
+            'client_id': env('FACEBOOK_APP_ID', default=''),
+            'secret': env('FACEBOOK_APP_SECRET', default=''),
+        }
+    },
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
@@ -83,11 +138,22 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ── Internacionalizacija ──────────────────────────────────────
-LANGUAGE_CODE = 'bs'
 TIME_ZONE = 'Europe/Sarajevo'
-USE_I18N = True
-USE_TZ = True
+USE_TZ = False
+LANGUAGE_CODE = 'bs'
 
+LANGUAGES = [
+    ('bs', _('Bosanski')),
+    ('en', _('English')),
+    ('de', _('Deutsch')),
+]
+
+USE_I18N = True
+USE_L10N = True
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 # ── Static i Media fajlovi ────────────────────────────────────
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -106,6 +172,14 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 # ── Session ───────────────────────────────────────────────────
 SESSION_COOKIE_AGE = 3600
 SESSION_SAVE_EVERY_REQUEST = True
+
+# ── Sigurnost (HTTPS) ─────────────────────────────────────────
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+X_FRAME_OPTIONS = 'DENY'
 
 # ── Celery ────────────────────────────────────────────────────
 CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
@@ -139,6 +213,20 @@ EMAIL_HOST_USER     = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL  = env('DEFAULT_FROM_EMAIL', default='noreply@rezervisi.ba')
 
+# ── Pretplate / Subscription ──────────────────────────────────
+SUBSCRIPTION_MONTHLY_PRICE = env.float('SUBSCRIPTION_MONTHLY_PRICE', default=10.00)
+
+# PayPal
+PAYPAL_MODE = env('PAYPAL_MODE', default='sandbox')  # 'sandbox' | 'live'
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
+
+# Bankovni podaci za uplate
+BANK_NAME = env('BANK_NAME', default='Raiffeisen Bank d.d. BiH')
+BANK_IBAN = env('BANK_IBAN', default='BA391610000000123456')
+BANK_SWIFT = env('BANK_SWIFT', default='RZBABA2S')
+BANK_ACCOUNT_OWNER = env('BANK_ACCOUNT_OWNER', default='RezervišiBiH d.o.o.')
+
 # ── Logging (samo konzola, bez file handlera) ─────────────────
 LOGGING = {
     'version': 1,
@@ -154,9 +242,19 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'django_errors.log',
+            'formatter': 'verbose',
+        },
     },
-    'root': {'handlers': ['console'], 'level': 'INFO'},
+    'root': {'handlers': ['console', 'file'], 'level': 'INFO'},
     'loggers': {
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
         'apps.notifications': {
             'handlers': ['console'],
             'level': 'INFO',

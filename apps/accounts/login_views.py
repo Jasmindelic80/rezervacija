@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth import get_user_model
 from .forms import normalize_phone
@@ -39,8 +40,12 @@ def login_with_phone(request):
 
         if user:
             login(request, user)
-            next_url = request.GET.get('next', 'home')
-            return redirect(next_url)
+            next_url = request.GET.get('next')
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
+            if user.is_provider():
+                return redirect('provider_dashboard')
+            return redirect('home')
         else:
             messages.error(request, 'Pogrešan broj telefona/username ili lozinka.')
 

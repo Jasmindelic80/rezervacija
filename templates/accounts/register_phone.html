@@ -1,133 +1,53 @@
-<!-- ============================================================ -->
-<!-- templates/accounts/register_phone.html  — Korak 1          -->
-<!-- ============================================================ -->
 {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Registration — Enter Phone Number{% endblock %}
+{% block title %}Registracija — RezervišiBiH{% endblock %}
 
 {% block extra_css %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
-  :root { --green: #1a6b4a; --green-light: #e8f5ee; }
-  body { font-family: 'Sora', sans-serif; background: #f8faf9; }
+  body { background: #f8faf9; }
+  .auth-wrapper { min-height: 80vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+  .auth-card { background:white; border-radius:20px; padding:2.5rem 2rem;
+    box-shadow:0 8px 40px rgba(0,0,0,0.08); width:100%; max-width:460px; }
+  .auth-logo { text-align:center; margin-bottom:1.5rem; }
+  .auth-logo .logo-icon { font-size:2.5rem; display:block; }
+  .auth-logo h1 { font-size:1.5rem; font-weight:800; color:#1a6b4a; margin:.5rem 0 .2rem; }
+  .auth-logo p { color:#6b7280; font-size:.9rem; }
 
-  .auth-wrapper {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-  }
-  .auth-card {
-    background: white;
-    border-radius: 20px;
-    padding: 2.5rem 2rem;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-    width: 100%;
-    max-width: 440px;
-  }
-  .auth-logo {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  .auth-logo .logo-icon {
-    font-size: 3rem;
-    display: block;
-  }
-  .auth-logo h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--green);
-    margin: 0.5rem 0 0.25rem;
-  }
-  .auth-logo p { color: #6b7280; font-size: 0.9rem; margin: 0; }
+  .steps { display:flex; justify-content:center; gap:6px; margin-bottom:1.75rem; }
+  .steps span { width:8px; height:8px; border-radius:50%; background:#e5e7eb; }
+  .steps span.on { background:#1a6b4a; width:24px; border-radius:4px; }
 
-  .steps-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 2rem;
-  }
-  .steps-dots span {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #e5e7eb;
-  }
-  .steps-dots span.active { background: var(--green); width: 24px; border-radius: 4px; }
+  .form-label { font-weight:600; font-size:.9rem; color:#374151; }
+  .form-control { border-radius:12px; border:2px solid #e5e7eb; padding:.875rem 1rem; font-size:1rem; transition:border-color .2s; }
+  .form-control:focus { border-color:#1a6b4a; box-shadow:0 0 0 3px rgba(26,107,74,.1); outline:none; }
 
-  .form-label { font-weight: 600; font-size: 0.9rem; color: #374151; }
-  .form-control {
-    border-radius: 12px;
-    border: 2px solid #e5e7eb;
-    padding: 0.875rem 1rem;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-  }
-  .form-control:focus {
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px rgba(26,107,74,0.1);
-  }
+  .role-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1.25rem; }
+  .role-card { border:2px solid #e5e7eb; border-radius:12px; padding:1rem; text-align:center;
+    cursor:pointer; transition:all .2s; }
+  .role-card input[type=radio] { display:none; }
+  .role-card.sel { border-color:#1a6b4a; background:#e8f5ee; }
+  .role-card .icon { font-size:1.75rem; display:block; margin-bottom:.25rem; }
+  .role-card .lbl { font-size:.85rem; font-weight:700; }
+  .role-card .sub { font-size:.75rem; color:#6b7280; }
 
-  .phone-input-wrapper {
-    display: flex;
-    gap: 8px;
-  }
-  .phone-prefix {
-    background: var(--green-light);
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 0.875rem 1rem;
-    font-weight: 600;
-    color: var(--green);
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .phone-wrap { display:flex; }
+  .phone-prefix { background:#e8f5ee; border:2px solid #e5e7eb; border-radius:12px 0 0 12px;
+    padding:.875rem 1rem; font-weight:600; color:#1a6b4a; border-right:none; white-space:nowrap; }
+  .phone-prefix select { background:transparent; border:none; outline:none; font-weight:600;
+    color:#1a6b4a; font-size:.95rem; cursor:pointer; max-width:200px; }
+  .phone-wrap .form-control { border-radius:0 12px 12px 0; border-left:none; }
 
-  .role-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 1.5rem;
-  }
-  .role-card {
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .role-card:hover { border-color: var(--green); }
-  .role-card input[type="radio"] { display: none; }
-  .role-card.selected { border-color: var(--green); background: var(--green-light); }
-  .role-card .icon { font-size: 1.75rem; display: block; margin-bottom: 0.25rem; }
-  .role-card .label { font-size: 0.85rem; font-weight: 600; }
-  .role-card .sublabel { font-size: 0.75rem; color: #6b7280; }
+  .optional-label { font-size:.78rem; color:#9ca3af; font-weight:400; }
 
-  .btn-auth {
-    background: var(--green);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 0.875rem;
-    width: 100%;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .btn-auth:hover { background: #0f4a32; }
+  .btn-auth { background:#1a6b4a; color:white; border:none; border-radius:12px;
+    padding:.875rem; width:100%; font-size:1rem; font-weight:700; cursor:pointer; transition:background .2s; }
+  .btn-auth:hover { background:#0f4a32; }
 
-  .auth-footer {
-    text-align: center;
-    margin-top: 1.5rem;
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-  .auth-footer a { color: var(--green); font-weight: 600; text-decoration: none; }
+  .auth-foot { text-align:center; margin-top:1.5rem; font-size:.875rem; color:#6b7280; }
+  .auth-foot a { color:#1a6b4a; font-weight:600; text-decoration:none; }
+
+  .email-icon { display:inline-block; width:48px; height:48px; background:#e8f5ee;
+    border-radius:12px; line-height:48px; text-align:center; font-size:1.5rem;
+    margin-bottom:.5rem; }
 </style>
 {% endblock %}
 
@@ -136,21 +56,17 @@
   <div class="auth-card">
     <div class="auth-logo">
       <span class="logo-icon">📅</span>
-      <h1>BookBiH</h1>
-      <p>Book an appointment for any service</p>
+      <h1>RezervišiBiH</h1>
+      <p>Kreiraj besplatan nalog</p>
     </div>
 
-    <div class="steps-dots">
-      <span class="active"></span>
-      <span></span>
-      <span></span>
+    <div class="steps">
+      <span class="on"></span><span></span><span></span>
     </div>
-
-    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:1.5rem">Create Account</h2>
 
     {% if messages %}
       {% for msg in messages %}
-        <div class="alert alert-{{ msg.tags }} mb-3 rounded-3">{{ msg }}</div>
+        <div class="alert alert-{{ msg.tags }} rounded-3 mb-3 py-2">{{ msg }}</div>
       {% endfor %}
     {% endif %}
 
@@ -159,56 +75,99 @@
 
       <!-- Tip korisnika -->
       <div class="mb-3">
-        <label class="form-label">I am...</label>
-        <div class="role-cards">
-          <label class="role-card selected" id="role-client">
+        <label class="form-label">Ja sam...</label>
+        <div class="role-grid">
+          <label class="role-card sel" id="rc-client">
             <input type="radio" name="role" value="client" checked>
             <span class="icon">🙋</span>
-            <div class="label">Client</div>
-            <div class="sublabel">Looking for services</div>
+            <div class="lbl">Klijent</div>
+            <div class="sub">Tražim usluge</div>
           </label>
-          <label class="role-card" id="role-provider">
+          <label class="role-card" id="rc-provider">
             <input type="radio" name="role" value="provider">
             <span class="icon">💼</span>
-            <div class="label">Provider</div>
-            <div class="sublabel">Offering services</div>
+            <div class="lbl">Pružatelj</div>
+            <div class="sub">Nudim usluge</div>
           </label>
         </div>
       </div>
 
-      <!-- Broj telefona -->
+      <!-- Email -->
+      <div class="mb-3">
+        <label class="form-label">Email adresa</label>
+        <input type="email" name="email" class="form-control"
+               placeholder="vas@email.com" autocomplete="email"
+               value="{{ request.POST.email|default:'' }}" required>
+        <div class="text-muted" style="font-size:.78rem;margin-top:.3rem;">
+          ✉️ Na ovaj email šaljemo kod za verifikaciju
+        </div>
+        {% if form.email.errors %}
+          <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Telefon (opciono) -->
       <div class="mb-4">
-        <label class="form-label">Phone number</label>
-        <div class="phone-input-wrapper">
-          <div class="phone-prefix">🇧🇦 +387</div>
-          <input type="tel" name="phone" class="form-control" 
+        <label class="form-label">
+          Broj telefona <span class="optional-label">(opciono)</span>
+        </label>
+        <div class="phone-wrap">
+          <div class="phone-prefix">
+            <select name="country_code">
+              {% for code, label in country_codes %}
+                <option value="{{ code }}" {% if code == '+387' %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <input type="tel" name="phone" class="form-control"
                  placeholder="61 123 456" inputmode="tel" autocomplete="tel"
-                 value="{{ request.POST.phone }}" required>
+                 value="{{ request.POST.phone|default:'' }}">
         </div>
         {% if form.phone.errors %}
           <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
         {% endif %}
-        <div class="text-muted small mt-1">You will receive a verification code on this number</div>
       </div>
 
-      <button type="submit" class="btn-auth">
-        Send verification code →
-      </button>
+      <button type="submit" class="btn-auth">Pošalji kod na email →</button>
     </form>
 
-    <div class="auth-footer">
-      Already have an account? <a href="{% url 'login' %}">Log in</a>
+    <!-- Social login -->
+    <div style="display:flex;align-items:center;gap:.75rem;margin:1.25rem 0;">
+      <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+      <span style="font-size:.8rem;color:#9ca3af;font-weight:600;">ili nastavi sa</span>
+      <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+      <a href="/accounts/google/login/?next=/" style="display:flex;align-items:center;justify-content:center;gap:.5rem;
+         border:2px solid #e5e7eb;border-radius:12px;padding:.75rem;font-weight:700;font-size:.875rem;
+         text-decoration:none;color:#374151;background:white;transition:border-color .2s;"
+         onmouseover="this.style.borderColor='#1a6b4a'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google
+      </a>
+      <a href="/accounts/facebook/login/?next=/" style="display:flex;align-items:center;justify-content:center;gap:.5rem;
+         border:2px solid #e5e7eb;border-radius:12px;padding:.75rem;font-weight:700;font-size:.875rem;
+         text-decoration:none;color:#374151;background:white;transition:border-color .2s;"
+         onmouseover="this.style.borderColor='#1a6b4a'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.93-1.956 1.886v2.288h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+        Facebook
+      </a>
+    </div>
+
+    <div class="auth-foot" style="margin-top:1rem;">
+      Već imaš nalog? <a href="{% url 'login' %}">Prijavi se</a>
+      &nbsp;·&nbsp;
+      <a href="{% url 'register_simple' %}">Registracija bez koda</a>
     </div>
   </div>
 </div>
 
 <script>
-  // Role card selection
-  document.querySelectorAll('.role-card').forEach(card => {
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      card.querySelector('input').checked = true;
+  document.querySelectorAll('.role-card').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.role-card').forEach(x => x.classList.remove('sel'));
+      c.classList.add('sel');
+      c.querySelector('input').checked = true;
     });
   });
 </script>

@@ -1,63 +1,284 @@
 {% extends 'base.html' %}
-{% block title %}{{ business.name }}{% endblock %}
+{% block title %}{{ business.name }} — RezervišiBiH{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hero-cover {
+    background: linear-gradient(135deg, #1a6b4a, #0f4a32);
+    height: 200px;
+    display: flex; align-items: flex-end;
+    padding: 1.5rem;
+    position: relative;
+  }
+  .hero-cover .biz-logo {
+    width: 80px; height: 80px;
+    border-radius: 16px;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  .hero-cover .biz-logo img {
+    width: 100%; height: 100%;
+    object-fit: cover; border-radius: 16px;
+  }
+  .hero-cover .biz-info h1 {
+    color: white; font-size: 1.5rem;
+    font-weight: 800; margin: 0;
+  }
+  .hero-cover .biz-info p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem; margin: 0;
+  }
+  .verified-badge {
+    background: #fbbf24; color: #78350f;
+    font-size: 0.72rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px;
+    display: inline-block; margin-left: 8px;
+  }
+  .info-card {
+    background: white; border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 1rem;
+  }
+  .info-card h3 {
+    font-size: 0.8rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #9ca3af; margin-bottom: 1rem;
+  }
+  .service-row {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer; transition: background 0.15s;
+    border-radius: 8px;
+  }
+  .service-row:last-child { border-bottom: none; }
+  .service-row:hover { background: #f9fafb; padding-left: 8px; }
+  .service-row .s-name { font-weight: 600; font-size: 0.95rem; }
+  .service-row .s-meta { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+  .service-row .s-price {
+    font-weight: 800; color: #1a6b4a; font-size: 1rem;
+    text-align: right;
+  }
+  .service-row .s-price small { display: block; font-size: 0.72rem; color: #9ca3af; font-weight: 400; }
+
+  .wh-row {
+    display: flex; justify-content: space-between;
+    padding: 0.4rem 0; font-size: 0.875rem;
+    border-bottom: 1px solid #f9fafb;
+  }
+  .wh-row:last-child { border-bottom: none; }
+  .wh-row .day { color: #374151; }
+  .wh-row .hours { color: #1a6b4a; font-weight: 600; }
+  .wh-row .closed { color: #9ca3af; }
+
+  .staff-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #f3f4f6; border-radius: 20px;
+    padding: 6px 14px; margin: 4px;
+    font-size: 0.85rem; font-weight: 600;
+  }
+  .staff-chip .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #1a6b4a; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700;
+  }
+
+  .btn-book {
+    background: #1a6b4a; color: white;
+    border: none; border-radius: 14px;
+    padding: 1rem; font-size: 1.1rem;
+    font-weight: 800; width: 100%;
+    cursor: pointer; transition: background 0.2s;
+    text-decoration: none; display: block;
+    text-align: center;
+  }
+  .btn-book:hover { background: #0f4a32; color: white; }
+
+  .next-slot {
+    background: #e8f5ee; color: #1a6b4a;
+    border-radius: 10px; padding: 0.75rem 1rem;
+    font-size: 0.875rem; font-weight: 600;
+    margin-bottom: 1rem; text-align: center;
+  }
+
+  .rating-stars { color: #fbbf24; font-size: 1.1rem; }
+
+  .review-card {
+    padding: 0.875rem 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .review-card:last-child { border-bottom: none; }
+  .review-card .reviewer { font-weight: 700; font-size: 0.875rem; }
+  .review-card .comment { color: #374151; font-size: 0.875rem; margin-top: 4px; }
+  .review-card .date { color: #9ca3af; font-size: 0.75rem; }
+</style>
+{% endblock %}
+
 {% block content %}
+
+<!-- Hero -->
+<div class="hero-cover">
+  <div class="biz-logo">
+    {% if business.logo %}
+      <img src="{{ business.logo.url }}" alt="{{ business.name }}">
+    {% else %}
+      {{ business.category.icon|default:"🏢" }}
+    {% endif %}
+  </div>
+  <div class="biz-info">
+    <h1>
+      {{ business.name }}
+      {% if business.is_verified %}
+        <span class="verified-badge">✓ Verificiran</span>
+      {% endif %}
+    </h1>
+    <p>{{ business.category.name }} · 📍 {{ business.address }}, {{ business.city }}</p>
+  </div>
+</div>
+
 <div class="container py-4">
-  <div class="row">
+  <div class="row g-4">
+
+    <!-- Lijeva kolona — Usluge -->
     <div class="col-lg-8">
-      <h1 class="fw-bold">{{ business.name }}</h1>
-      <p class="text-muted">📍 {{ business.address }}, {{ business.city }}</p>
-      <p class="text-muted">📞 {{ business.phone }}</p>
-      {% if business.description %}
-        <p>{{ business.description }}</p>
-      {% endif %}
 
-      <h4 class="mt-4 fw-bold">Usluge</h4>
-      {% for service in services %}
-      <div class="card mb-2 p-3">
-        <div class="d-flex justify-content-between">
+      <!-- Usluge -->
+      <div class="info-card">
+        <h3>Usluge</h3>
+        {% for service in services %}
+        <div class="service-row" onclick="window.location='{% url 'book' business.slug %}?service={{ service.id }}'">
           <div>
-            <strong>{{ service.name }}</strong>
-            <div class="text-muted small">⏱ {{ service.duration_minutes }} min</div>
+            <div class="s-name">{{ service.name }}</div>
+            <div class="s-meta">⏱ {{ service.duration_minutes }} min</div>
           </div>
-          <div class="fw-bold text-success">{{ service.price }} KM</div>
+          <div class="s-price">
+            {{ service.price }} KM
+            <small>po usluzi</small>
+          </div>
         </div>
-      </div>
-      {% endfor %}
-
-      <a href="{% url 'book' business.slug %}" 
-         class="btn mt-3 text-white fw-bold w-100"
-         style="background:#1a6b4a;border-radius:10px;padding:.875rem">
-        📅 Rezerviši termin
-      </a>
-    </div>
-
-    <div class="col-lg-4 mt-4 mt-lg-0">
-      <div class="card p-3">
-        <h5 class="fw-bold">Radno vrijeme</h5>
-        {% for wh in business.working_hours.all %}
-        <div class="d-flex justify-content-between">
-          <span>{{ wh.get_day_of_week_display }}</span>
-          <span>
-            {% if wh.is_closed %}Zatvoreno
-            {% else %}{{ wh.open_time|time:"H:i" }} — {{ wh.close_time|time:"H:i" }}
-            {% endif %}
-          </span>
-        </div>
+        {% empty %}
+        <p class="text-muted">Nema dostupnih usluga.</p>
         {% endfor %}
       </div>
 
+      <!-- Tim -->
       {% if staff %}
-      <div class="card p-3 mt-3">
-        <h5 class="fw-bold">Tim</h5>
+      <div class="info-card">
+        <h3>Naš tim</h3>
         {% for member in staff %}
-        <div class="mb-2">
-          <strong>{{ member.name }}</strong>
-          {% if member.title %}<div class="text-muted small">{{ member.title }}</div>{% endif %}
+        <span class="staff-chip">
+          <span class="avatar">{{ member.name|first }}</span>
+          <span>
+            {{ member.name }}
+            {% if member.title %}<small style="color:#6b7280;font-weight:400"> · {{ member.title }}</small>{% endif %}
+          </span>
+        </span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Recenzije -->
+      {% if reviews %}
+      <div class="info-card">
+        <h3>
+          Recenzije
+          {% if business.average_rating %}
+            <span class="rating-stars ms-2">
+              {% with avg=business.average_rating %}
+                {% if avg >= 1 %}⭐{% endif %}
+                {% if avg >= 2 %}⭐{% endif %}
+                {% if avg >= 3 %}⭐{% endif %}
+                {% if avg >= 4 %}⭐{% endif %}
+                {% if avg >= 5 %}⭐{% endif %}
+              {% endwith %}
+            </span>
+            <span style="font-size:0.85rem;color:#6b7280;font-weight:400">
+              {{ business.average_rating|floatformat:1 }} / 5
+              ({{ business.review_count }} ocjena)
+            </span>
+          {% endif %}
+        </h3>
+        {% for review in reviews %}
+        <div class="review-card">
+          <div class="d-flex justify-content-between">
+            <span class="reviewer">{{ review.client.first_name|default:review.client.username }}</span>
+            <span class="date">{{ review.created_at|date:"d.m.Y" }}</span>
+          </div>
+          <div class="rating-stars" style="font-size:0.85rem">
+            {% for i in "12345" %}{% if forloop.counter <= review.rating %}⭐{% endif %}{% endfor %}
+          </div>
+          {% if review.comment %}
+          <div class="comment">{{ review.comment }}</div>
+          {% endif %}
         </div>
         {% endfor %}
       </div>
       {% endif %}
+
     </div>
+
+    <!-- Desna kolona — Rezervacija i info -->
+    <div class="col-lg-4">
+
+      <!-- Rezervacija -->
+      <div class="info-card" style="position: sticky; top: 1rem;">
+        {% if next_available_slot %}
+        <div class="next-slot">
+          ✅ Sljedeći slobodan termin:<br>
+          <strong>{{ next_available_date|date:"d.m.Y" }} u {{ next_available_slot|time:"H:i" }}</strong>
+        </div>
+        {% endif %}
+
+        <a href="{% url 'book' business.slug %}" class="btn-book">
+          📅 Rezerviši termin
+        </a>
+
+        <!-- Kontakt -->
+        <div class="mt-3">
+          <div class="mb-2">
+            📞 <a href="tel:{{ business.phone }}" style="color:#1a6b4a;font-weight:600">
+              {{ business.phone }}
+            </a>
+          </div>
+          {% if business.email %}
+          <div class="mb-2">
+            📧 <a href="mailto:{{ business.email }}" style="color:#1a6b4a">{{ business.email }}</a>
+          </div>
+          {% endif %}
+          {% if business.website %}
+          <div class="mb-2">
+            🌐 <a href="{{ business.website }}" target="_blank" style="color:#1a6b4a">Website</a>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Radno vrijeme -->
+        {% if business.working_hours.all %}
+        <hr>
+        <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;margin-bottom:.75rem">
+          Radno vrijeme
+        </h3>
+        {% for wh in business.working_hours.all %}
+        <div class="wh-row">
+          <span class="day">{{ wh.get_day_of_week_display }}</span>
+          {% if wh.is_closed %}
+            <span class="closed">Zatvoreno</span>
+          {% else %}
+            <span class="hours">{{ wh.open_time|time:"H:i" }} — {{ wh.close_time|time:"H:i" }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+      </div>
+    </div>
+
   </div>
 </div>
 {% endblock %}
