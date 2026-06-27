@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.http import HttpResponse
 from datetime import datetime, date, timedelta
 
 from apps.businesses.models import Business, Staff
@@ -61,10 +62,10 @@ def book_appointment(request, business_slug):
             )
 
             try:
-                from apps.notifications.tasks import send_appointment_confirmation
-                send_appointment_confirmation.delay(str(appointment.id))
+                from apps.notifications.tasks import _send_email
+                _send_email(appointment, 'confirmation')
             except Exception:
-                pass  # notifikacija nije kritična — termin je kreiran
+                pass
 
             return redirect('appointment_confirm', pk=appointment.pk)
 
@@ -84,7 +85,11 @@ def book_appointment(request, business_slug):
 @login_required
 def appointment_confirm(request, pk):
     appointment = get_object_or_404(Appointment, pk=pk, client=request.user)
-    return render(request, 'appointments/confirm.html', {'appointment': appointment})
+    from apps.notifications.tasks import _google_calendar_url
+    return render(request, 'appointments/confirm.html', {
+        'appointment': appointment,
+        'google_cal_url': _google_calendar_url(appointment),
+    })
 
 
 @login_required
@@ -128,10 +133,99 @@ def cancel_appointment(request, pk):
         messages.success(request, 'Termin je uspješno otkazan.')
 
         try:
-            from apps.notifications.tasks import send_cancellation_notification
-            send_cancellation_notification.delay(str(appointment.id), cancelled_by='client')
+            from apps.notifications.tasks import _send_email
+            _send_email(appointment, 'cancellation')
         except Exception:
-            pass  # notifikacija nije kritična — termin je otkazan
+            pass
         return redirect('my_appointments')
 
     return render(request, 'appointments/cancel.html', {'appointment': appointment})
+
+
+def appointment_ics(request, pk):
+    """Generiši .ics fajl za dodavanje termina u kalendar."""
+    appointment = get_object_or_404(Appointment, pk=pk)
+
+    start = appointment.start_datetime.astimezone(timezone.utc)
+    end = appointment.end_datetime.astimezone(timezone.utc)
+    dt_fmt = '%Y%m%dT%H%M%SZ'
+    now_fmt = timezone.now().strftime(dt_fmt)
+
+    service_name = appointment.service.name if appointment.service else 'Termin'
+    staff_text = f' sa {appointment.staff.name}' if appointment.staff else ''
+    location = f'{appointment.business.address}, {appointment.business.city}' if appointment.business.address else appointment.business.city
+    description = f'{service_name}{staff_text} — {appointment.business.name}'
+
+    ics = (
+        'BEGIN:VCALENDAR\r\n'
+        'VERSION:2.0\r\n'
+        'PRODID:-//RezervišiBiH//HR\r\n'
+        'CALSCALE:GREGORIAN\r\n'
+        'METHOD:PUBLISH\r\n'
+        'BEGIN:VEVENT\r\n'
+        f'UID:{appointment.pk}@rezervisi.ba\r\n'
+        f'DTSTAMP:{now_fmt}\r\n'
+        f'DTSTART:{start.strftime(dt_fmt)}\r\n'
+        f'DTEND:{end.strftime(dt_fmt)}\r\n'
+        f'SUMMARY:{service_name} — {appointment.business.name}\r\n'
+        f'DESCRIPTION:{description}\r\n'
+        f'LOCATION:{location}\r\n'
+        'END:VEVENT\r\n'
+        'END:VCALENDAR\r\n'
+    )
+
+    response = HttpResponse(ics, content_type='text/calendar; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="termin-{start.strftime("%Y%m%d-%H%M")}.ics"'
+    return response
+
+
+@login_required
+def reschedule_appointment(request, pk):
+    appointment = get_object_or_404(Appointment, pk=pk, client=request.user)
+
+    if not appointment.is_reschedulable():
+        messages.error(
+            request,
+            'Ovaj termin se ne može promijeniti. '
+            'Možete mijenjati termin najmanje 2 sata unaprijed.'
+        )
+        return redirect('my_appointments')
+
+    if request.method == 'POST':
+        date_str = request.POST.get('date')
+        time_str = request.POST.get('time')
+
+        try:
+            selected_date = date.fromisoformat(date_str)
+            selected_time = datetime.strptime(time_str, '%H:%M').time()
+            start_dt = datetime.combine(selected_date, selected_time)
+
+            available = get_available_slots(
+                appointment.business, appointment.service, appointment.staff, selected_date
+            )
+            slot_times = [s.strftime('%H:%M') for s in available]
+
+            if time_str not in slot_times:
+                messages.error(request, 'Ovaj termin više nije slobodan. Odaberite drugi.')
+                return redirect('reschedule', pk=pk)
+
+            duration = timedelta(minutes=appointment.service.duration_minutes)
+            appointment.start_datetime = timezone.make_aware(start_dt)
+            appointment.end_datetime = timezone.make_aware(start_dt) + duration
+            appointment.save(update_fields=['start_datetime', 'end_datetime', 'updated_at'])
+
+            messages.success(
+                request,
+                f'Termin je uspješno premješten na {appointment.start_datetime:%d.%m.%Y u %H:%M}.'
+            )
+            return redirect('my_appointments')
+
+        except Exception as e:
+            messages.error(request, f'Greška: {e}')
+
+    context = {
+        'appointment': appointment,
+        'today': date.today().isoformat(),
+        'max_date': (date.today() + timedelta(days=60)).isoformat(),
+    }
+    return render(request, 'appointments/reschedule.html', context)

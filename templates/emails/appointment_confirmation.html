@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Potvrda termina</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f6f4;font-family:Arial,Helvetica,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f4;padding:32px 16px;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+  <!-- Header -->
+  <tr>
+    <td style="background:#1a6b4a;border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">✅</div>
+      <h1 style="margin:0;color:white;font-size:24px;font-weight:800;">Termin potvrđen!</h1>
+      <p style="margin:8px 0 0;color:rgba(255,255,255,.8);font-size:15px;">RezervišiBiH</p>
+    </td>
+  </tr>
+
+  <!-- Body -->
+  <tr>
+    <td style="background:white;padding:40px;">
+
+      <p style="margin:0 0 24px;font-size:16px;color:#374151;">
+        Zdravo <strong>{{ client_name }}</strong>,
+      </p>
+      <p style="margin:0 0 28px;font-size:15px;color:#6b7280;line-height:1.6;">
+        Vaša rezervacija je uspješno potvrđena. U nastavku su detalji vašeg termina.
+      </p>
+
+      <!-- Detalji termina -->
+      <table width="100%" cellpadding="0" cellspacing="0"
+             style="background:#f8faf9;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;margin-bottom:28px;">
+        <tr>
+          <td style="padding:20px 24px;border-bottom:1px solid #e5e7eb;">
+            <span style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;">Biznis</span>
+            <div style="font-size:18px;font-weight:800;color:#111827;margin-top:4px;">{{ business_name }}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 24px;border-bottom:1px solid #e5e7eb;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="50%" style="vertical-align:top;">
+                  <span style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;">Datum</span>
+                  <div style="font-size:16px;font-weight:700;color:#111827;margin-top:4px;">📅 {{ date }}</div>
+                </td>
+                <td width="50%" style="vertical-align:top;">
+                  <span style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;">Vrijeme</span>
+                  <div style="font-size:16px;font-weight:700;color:#111827;margin-top:4px;">🕐 {{ time }}</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 24px;border-bottom:1px solid #e5e7eb;">
+            <span style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;">Usluga</span>
+            <div style="font-size:15px;font-weight:600;color:#374151;margin-top:4px;">🔧 {{ service_name }}</div>
+          </td>
+        </tr>
+        {% if staff_name %}
+        <tr>
+          <td style="padding:16px 24px;border-bottom:1px solid #e5e7eb;">
+            <span style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;">Radnik</span>
+            <div style="font-size:15px;font-weight:600;color:#374151;margin-top:4px;">👤 {{ staff_name }}</div>
+          </td>
+        </tr>
+        {% endif %}
+        {% if location %}
+        <tr>
+          <td style="padding:16px 24px;">
+            <span style="font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;">Adresa</span>
+            <div style="font-size:15px;font-weight:600;color:#374151;margin-top:4px;">📍 {{ location }}</div>
+          </td>
+        </tr>
+        {% endif %}
+      </table>
+
+      <!-- Dodaj u kalendar -->
+      <p style="margin:0 0 16px;font-size:14px;font-weight:700;color:#374151;">Dodajte termin u vaš kalendar:</p>
+
+      <table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+        <tr>
+          <td style="padding-right:8px;">
+            <a href="{{ google_cal_url }}" target="_blank"
+               style="display:inline-block;background:#4285F4;color:white;text-decoration:none;
+                      font-size:14px;font-weight:700;padding:12px 20px;border-radius:10px;">
+              📅 Google kalendar
+            </a>
+          </td>
+          <td style="padding-right:8px;">
+            <a href="{{ ics_url }}" target="_blank"
+               style="display:inline-block;background:#1a6b4a;color:white;text-decoration:none;
+                      font-size:14px;font-weight:700;padding:12px 20px;border-radius:10px;">
+              📥 Apple / Outlook
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Otkazivanje -->
+      <table width="100%" cellpadding="0" cellspacing="0"
+             style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;margin-bottom:32px;">
+        <tr>
+          <td style="padding:16px 20px;">
+            <p style="margin:0 0 8px;font-size:13px;color:#92400e;font-weight:700;">ℹ️ Politika otkazivanja</p>
+            <p style="margin:0 0 12px;font-size:13px;color:#92400e;line-height:1.5;">
+              Termin možete otkazati najmanje 2 sata unaprijed.
+            </p>
+            <a href="{{ cancel_url }}"
+               style="display:inline-block;background:white;color:#dc2626;text-decoration:none;
+                      font-size:13px;font-weight:700;padding:8px 16px;border-radius:8px;
+                      border:1px solid #fca5a5;">
+              Otkaži termin
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0;font-size:14px;color:#9ca3af;line-height:1.6;">
+        Vidimo se! 😊<br>
+        <strong style="color:#1a6b4a;">Tim RezervišiBiH</strong>
+      </p>
+    </td>
+  </tr>
+
+  <!-- Footer -->
+  <tr>
+    <td style="background:#f4f6f4;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
+      <p style="margin:0;font-size:12px;color:#9ca3af;">
+        © 2026 RezervišiBiH · Ovu poruku ste primili jer ste rezervisali termin.
+      </p>
+    </td>
+  </tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

@@ -102,7 +102,10 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Lozinka</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+          <label class="form-label" style="margin:0;">Lozinka</label>
+          <a href="{% url 'password_reset_request' %}" style="font-size:.8rem;color:#1a6b4a;font-weight:600;text-decoration:none;">Zaboravili ste lozinku?</a>
+        </div>
         <input type="password" name="password" class="form-control"
                placeholder="Vaša lozinka" required>
       </div>

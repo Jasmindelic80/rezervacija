@@ -35,7 +35,7 @@ def send_otp_email(email: str, otp: str, purpose: str = 'register') -> bool:
         send_mail(
             subject=subject,
             message=body,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@rezervisi.ba'),
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'RezervišiBiH <terminbih@gmail.com>'),
             recipient_list=[email],
             fail_silently=False,
         )

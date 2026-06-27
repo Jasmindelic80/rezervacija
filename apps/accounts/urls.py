@@ -7,6 +7,10 @@ from .views import (
     resend_otp,
     profile_settings,
     register_simple,
+    password_reset_request,
+    password_reset_verify,
+    password_reset_resend,
+    password_reset_confirm,
 )
 from .login_views import login_with_phone
 
@@ -19,4 +23,8 @@ urlpatterns = [
     path('prijava/',                    login_with_phone,        name='login'),
     path('odjava/',                     LogoutView.as_view(),    name='logout'),
     path('profil/postavke/',            profile_settings,        name='profile_settings'),
+    path('reset-lozinke/',             password_reset_request,  name='password_reset_request'),
+    path('reset-lozinke/kod/',         password_reset_verify,   name='password_reset_verify'),
+    path('reset-lozinke/resend/',      password_reset_resend,   name='password_reset_resend'),
+    path('reset-lozinke/nova/',        password_reset_confirm,  name='password_reset_confirm'),
 ]

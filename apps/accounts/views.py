@@ -222,6 +222,121 @@ def resend_otp(request):
     return redirect('register_verify')
 
 
+@require_http_methods(['GET', 'POST'])
+def password_reset_request(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        if not email:
+            messages.error(request, 'Unesite email adresu.')
+            return render(request, 'accounts/password_reset_request.html')
+
+        user_exists = User.objects.filter(email=email).exists()
+        if user_exists:
+            otp_obj = PhoneOTP.create_for_phone(email, purpose='reset')
+            send_otp_email(email, otp_obj.otp, purpose='reset')
+
+        request.session['reset_email'] = email
+        messages.success(request, f'Ako postoji nalog sa {email}, poslan je kod za reset lozinke.')
+        return redirect('password_reset_verify')
+
+    return render(request, 'accounts/password_reset_request.html')
+
+
+@require_http_methods(['GET', 'POST'])
+def password_reset_verify(request):
+    email = request.session.get('reset_email')
+    if not email:
+        return redirect('password_reset_request')
+
+    if request.method == 'POST':
+        otp_input = request.POST.get('otp', '').strip()
+
+        try:
+            otp_obj = PhoneOTP.objects.filter(
+                phone=email, purpose='reset', verified=False
+            ).latest('created_at')
+        except PhoneOTP.DoesNotExist:
+            messages.error(request, 'Nema aktivnog koda. Zatražite novi.')
+            return redirect('password_reset_request')
+
+        otp_obj.attempts += 1
+        otp_obj.save()
+
+        if otp_obj.is_expired():
+            messages.error(request, 'Kod je istekao. Zatražite novi.')
+            return redirect('password_reset_request')
+
+        if otp_obj.attempts > 5:
+            messages.error(request, 'Previše pokušaja. Zatražite novi kod.')
+            return redirect('password_reset_request')
+
+        if otp_obj.otp != otp_input:
+            remaining = 5 - otp_obj.attempts
+            messages.error(request, f'Pogrešan kod. Još {remaining} pokušaj(a).')
+            return render(request, 'accounts/password_reset_verify.html', {'email': email})
+
+        otp_obj.verified = True
+        otp_obj.save()
+        request.session['reset_verified'] = True
+        return redirect('password_reset_confirm')
+
+    return render(request, 'accounts/password_reset_verify.html', {'email': email})
+
+
+@require_http_methods(['POST'])
+def password_reset_resend(request):
+    email = request.session.get('reset_email')
+    if not email:
+        return redirect('password_reset_request')
+
+    if User.objects.filter(email=email).exists():
+        otp_obj = PhoneOTP.create_for_phone(email, purpose='reset')
+        send_otp_email(email, otp_obj.otp, purpose='reset')
+
+    messages.info(request, f'Novi kod je poslan na {email}.')
+    return redirect('password_reset_verify')
+
+
+@require_http_methods(['GET', 'POST'])
+def password_reset_confirm(request):
+    email = request.session.get('reset_email')
+    verified = request.session.get('reset_verified')
+
+    if not email or not verified:
+        return redirect('password_reset_request')
+
+    if request.method == 'POST':
+        password = request.POST.get('password', '')
+        password2 = request.POST.get('password2', '')
+
+        if len(password) < 8:
+            messages.error(request, 'Lozinka mora imati najmanje 8 karaktera.')
+            return render(request, 'accounts/password_reset_confirm.html')
+
+        if password != password2:
+            messages.error(request, 'Lozinke se ne podudaraju.')
+            return render(request, 'accounts/password_reset_confirm.html')
+
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(password)
+            user.save()
+        except User.DoesNotExist:
+            messages.error(request, 'Nalog nije pronađen.')
+            return redirect('password_reset_request')
+
+        for key in ['reset_email', 'reset_verified']:
+            request.session.pop(key, None)
+
+        messages.success(request, 'Lozinka je uspješno promijenjena. Možete se prijaviti.')
+        return redirect('login')
+
+    return render(request, 'accounts/password_reset_confirm.html')
+
+
 @login_required
 def profile_settings(request):
     if request.method == 'POST':

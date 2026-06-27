@@ -1,50 +1,99 @@
-
-<!-- ============================================================ -->
-<!-- templates/accounts/register_complete.html  — Korak 3 Profil -->
-<!-- ============================================================ -->
-{% comment %}
 {% extends 'base.html' %}
-{% block title %}Complete Your Profile{% endblock %}
+{% block title %}Dopuni profil — RezervišiBiH{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: #f8faf9; }
+  .auth-wrapper { min-height: 80vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
+  .auth-card { background:white; border-radius:20px; padding:2.5rem 2rem;
+    box-shadow:0 8px 40px rgba(0,0,0,.08); width:100%; max-width:460px; }
+  .auth-logo { text-align:center; margin-bottom:1.5rem; }
+  .auth-logo .logo-icon { font-size:2.5rem; display:block; }
+  .auth-logo h1 { font-size:1.5rem; font-weight:800; color:#1a6b4a; margin:.5rem 0 .2rem; }
+  .auth-logo p { color:#6b7280; font-size:.9rem; }
+
+  .steps { display:flex; justify-content:center; gap:6px; margin-bottom:1.75rem; }
+  .steps span { width:8px; height:8px; border-radius:50%; background:#e5e7eb; }
+  .steps span.done { background:#1a6b4a; }
+  .steps span.on { background:#1a6b4a; width:24px; border-radius:4px; }
+
+  .form-label { font-weight:600; font-size:.9rem; color:#374151; }
+  .form-control { border-radius:12px; border:2px solid #e5e7eb; padding:.875rem 1rem;
+    font-size:1rem; transition:border-color .2s; width:100%; box-sizing:border-box; }
+  .form-control:focus { border-color:#1a6b4a; box-shadow:0 0 0 3px rgba(26,107,74,.1); outline:none; }
+
+  .email-badge { background:#e8f5ee; border-radius:10px; padding:.6rem 1rem;
+    font-size:.9rem; color:#1a6b4a; font-weight:600; margin-bottom:1.25rem; }
+
+  .btn-auth { background:#1a6b4a; color:white; border:none; border-radius:12px;
+    padding:.875rem; width:100%; font-size:1rem; font-weight:700; cursor:pointer; transition:background .2s; }
+  .btn-auth:hover { background:#0f4a32; }
+
+  .errorlist { list-style:none; padding:0; margin:.25rem 0 0; color:#dc2626; font-size:.82rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="auth-wrapper">
   <div class="auth-card">
     <div class="auth-logo">
-      <span class="logo-icon">✅</span>
-      <h1>Number Verified!</h1>
-      <p>Complete your account details</p>
+      <span class="logo-icon">📅</span>
+      <h1>RezervišiBiH</h1>
+      <p>Još malo — dopunite profil</p>
     </div>
 
-    <div class="steps-dots">
-      <span>✓</span><span>✓</span><span class="active"></span>
+    <div class="steps">
+      <span class="done"></span>
+      <span class="done"></span>
+      <span class="on"></span>
     </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} rounded-3 mb-3 py-2">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="email-badge">✉️ {{ email }}</div>
 
     <form method="post">
       {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger rounded-3 mb-3 py-2">
+          {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+        </div>
+      {% endif %}
+
       <div class="row g-3 mb-3">
         <div class="col-6">
-          <label class="form-label">First Name</label>
-          {{ form.first_name }}
+          <label class="form-label">Ime</label>
+          <input type="text" name="first_name" class="form-control" placeholder="Vaše ime"
+                 value="{{ form.first_name.value|default:'' }}" required>
+          {% if form.first_name.errors %}<ul class="errorlist">{% for e in form.first_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
         </div>
         <div class="col-6">
-          <label class="form-label">Last Name</label>
-          {{ form.last_name }}
+          <label class="form-label">Prezime</label>
+          <input type="text" name="last_name" class="form-control" placeholder="Vaše prezime"
+                 value="{{ form.last_name.value|default:'' }}" required>
+          {% if form.last_name.errors %}<ul class="errorlist">{% for e in form.last_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
         </div>
       </div>
+
       <div class="mb-3">
-        <label class="form-label">Email (optional)</label>
-        {{ form.email }}
+        <label class="form-label">Lozinka</label>
+        <input type="password" name="password" class="form-control" placeholder="Min. 8 karaktera" required>
+        {% if form.password.errors %}<ul class="errorlist">{% for e in form.password.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
       </div>
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        {{ form.password }}
-      </div>
+
       <div class="mb-4">
-        <label class="form-label">Confirm Password</label>
-        {{ form.password_confirm }}
+        <label class="form-label">Potvrda lozinke</label>
+        <input type="password" name="password_confirm" class="form-control" placeholder="Ponovite lozinku" required>
+        {% if form.password_confirm.errors %}<ul class="errorlist">{% for e in form.password_confirm.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
       </div>
-      <button type="submit" class="btn-auth">Create Account ✓</button>
+
+      <button type="submit" class="btn-auth">Kreiraj nalog ✓</button>
     </form>
   </div>
 </div>
 {% endblock %}
-{% endcomment %}

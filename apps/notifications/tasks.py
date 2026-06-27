@@ -1,75 +1,108 @@
 from celery import shared_task
 from django.utils import timezone
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.conf import settings
 from datetime import timedelta
+from urllib.parse import urlencode
 import logging
 
 from .dispatcher import dispatcher
 
 logger = logging.getLogger(__name__)
 
+SITE_URL = getattr(settings, 'SITE_URL', 'https://rezervisi.ba')
 
-def _send_email_reminder(appt, message_type: str):
-    """Email podsjetnik kao fallback ili primarni kanal."""
+
+def _google_calendar_url(appt) -> str:
+    start = appt.start_datetime.astimezone(timezone.utc)
+    end = appt.end_datetime.astimezone(timezone.utc)
+    service_name = appt.service.name if appt.service else 'Termin'
+    location = ''
+    if appt.business.address:
+        location = f'{appt.business.address}, {appt.business.city}'
+    params = urlencode({
+        'action': 'TEMPLATE',
+        'text': f'{service_name} — {appt.business.name}',
+        'dates': f'{start:%Y%m%dT%H%M%SZ}/{end:%Y%m%dT%H%M%SZ}',
+        'details': f'Usluga: {service_name}\nBiznis: {appt.business.name}',
+        'location': location,
+    })
+    return f'https://calendar.google.com/calendar/render?{params}'
+
+
+def _send_email(appt, message_type: str):
     if not appt.client.email:
         return
 
-    subjects = {
-        'reminder_24h': f'Podsjetnik: Vaš termin sutra u {appt.start_datetime:%H:%M}',
-        'reminder_1h':  f'Podsjetnik: Vaš termin za sat vremena ({appt.start_datetime:%H:%M})',
-        'confirmation': f'Potvrda termina — {appt.business.name}',
-        'cancellation': f'Termin otkazan — {appt.business.name}',
-    }
     service_name = appt.service.name if appt.service else '—'
-    staff_text = f', radnik: {appt.staff.name}' if appt.staff else ''
-    cancel_link = f"{settings.SITE_URL}/termin/otkazi/{appt.pk}/" if hasattr(settings, 'SITE_URL') else ''
+    staff_name = appt.staff.name if appt.staff else ''
+    location = f'{appt.business.address}, {appt.business.city}' if getattr(appt.business, 'address', '') else getattr(appt.business, 'city', '')
+    cancel_url = f'{SITE_URL}/termin/otkazi/{appt.pk}/'
+    ics_url = f'{SITE_URL}/termin/ical/{appt.pk}/'
 
-    bodies = {
-        'reminder_24h': (
-            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
-            f"Podsjećamo vas da imate termin sutra:\n\n"
-            f"  Biznis:  {appt.business.name}\n"
-            f"  Usluga:  {service_name}{staff_text}\n"
-            f"  Datum:   {appt.start_datetime:%d.%m.%Y}\n"
-            f"  Vrijeme: {appt.start_datetime:%H:%M}\n\n"
-            f"{'Za otkazivanje: ' + cancel_link if cancel_link else ''}\n\n"
-            f"Vidimo se!\nRezervišiBiH tim"
-        ),
-        'reminder_1h': (
-            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
-            f"Vaš termin počinje za sat vremena!\n\n"
-            f"  Biznis:  {appt.business.name}\n"
-            f"  Usluga:  {service_name}{staff_text}\n"
-            f"  Vrijeme: {appt.start_datetime:%H:%M}\n\n"
-            f"RezervišiBiH tim"
-        ),
-        'confirmation': (
-            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
-            f"Vaš termin je potvrđen:\n\n"
-            f"  Biznis:  {appt.business.name}\n"
-            f"  Usluga:  {service_name}{staff_text}\n"
-            f"  Datum:   {appt.start_datetime:%d.%m.%Y}\n"
-            f"  Vrijeme: {appt.start_datetime:%H:%M}\n\n"
-            f"{'Za otkazivanje: ' + cancel_link if cancel_link else ''}\n\n"
-            f"RezervišiBiH tim"
-        ),
-        'cancellation': (
-            f"Poštovani {appt.client.first_name or appt.client.username},\n\n"
-            f"Vaš termin u {appt.business.name} "
-            f"({appt.start_datetime:%d.%m.%Y u %H:%M}) je otkazan.\n\n"
-            f"RezervišiBiH tim"
-        ),
+    subjects = {
+        'confirmation': f'✅ Potvrda termina — {appt.business.name}',
+        'reminder_24h': f'⏰ Podsjetnik: sutra u {appt.start_datetime:%H:%M} — {appt.business.name}',
+        'reminder_1h':  f'🔔 Vaš termin za sat vremena — {appt.business.name}',
+        'cancellation': f'❌ Termin otkazan — {appt.business.name}',
     }
+
+    ctx = {
+        'client_name':   appt.client.first_name or appt.client.username,
+        'business_name': appt.business.name,
+        'service_name':  service_name,
+        'staff_name':    staff_name,
+        'date':          appt.start_datetime.strftime('%d.%m.%Y'),
+        'time':          appt.start_datetime.strftime('%H:%M'),
+        'location':      location,
+        'cancel_url':    cancel_url,
+        'ics_url':       ics_url,
+        'google_cal_url': _google_calendar_url(appt),
+    }
+
+    if message_type == 'confirmation':
+        html_body = render_to_string('emails/appointment_confirmation.html', ctx)
+        text_body = (
+            f"Zdravo {ctx['client_name']},\n\n"
+            f"Vaš termin je potvrđen:\n"
+            f"  Biznis:  {ctx['business_name']}\n"
+            f"  Usluga:  {service_name}\n"
+            f"  Datum:   {ctx['date']}\n"
+            f"  Vrijeme: {ctx['time']}\n\n"
+            f"Dodajte u kalendar: {ics_url}\n"
+            f"Otkazivanje: {cancel_url}\n\n"
+            f"Tim RezervišiBiH"
+        )
+    elif message_type in ('reminder_24h', 'reminder_1h'):
+        period = 'sutra' if message_type == 'reminder_24h' else 'za sat vremena'
+        text_body = (
+            f"Podsjetnik: imate termin {period}!\n\n"
+            f"  Biznis:  {ctx['business_name']}\n"
+            f"  Usluga:  {service_name}\n"
+            f"  Datum:   {ctx['date']}\n"
+            f"  Vrijeme: {ctx['time']}\n\n"
+            f"Tim RezervišiBiH"
+        )
+        html_body = None
+    else:
+        text_body = (
+            f"Vaš termin u {ctx['business_name']} "
+            f"({ctx['date']} u {ctx['time']}) je otkazan.\n\n"
+            f"Tim RezervišiBiH"
+        )
+        html_body = None
 
     try:
-        send_mail(
+        email = EmailMultiAlternatives(
             subject=subjects.get(message_type, 'Obavijest — RezervišiBiH'),
-            message=bodies.get(message_type, ''),
+            body=text_body,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[appt.client.email],
-            fail_silently=True,
+            to=[appt.client.email],
         )
+        if html_body:
+            email.attach_alternative(html_body, 'text/html')
+        email.send(fail_silently=True)
         logger.info(f"Email {message_type} → {appt.client.email}")
     except Exception as e:
         logger.error(f"Email greška: {e}")
@@ -84,13 +117,13 @@ def send_appointment_confirmation(self, appointment_id: str):
             'client', 'business', 'service', 'staff'
         ).get(id=appointment_id)
 
-        context = _build_context(appt)
         dispatcher.send(
             user=appt.client,
             message_type='confirmation',
-            context=context,
-            appointment=appt
+            context=_build_context(appt),
+            appointment=appt,
         )
+        _send_email(appt, 'confirmation')
     except Exception as exc:
         logger.error(f"Greška pri slanju potvrde {appointment_id}: {exc}")
         raise self.retry(exc=exc)
@@ -111,7 +144,6 @@ def send_appointment_reminders():
             status=NotificationLog.STATUS_SENT,
         ).exists()
 
-    # Podsjetnik dan prije (prozor 23h–25h)
     for appt in Appointment.objects.filter(
         start_datetime__gte=now + timedelta(hours=23),
         start_datetime__lte=now + timedelta(hours=25),
@@ -120,10 +152,9 @@ def send_appointment_reminders():
         if not _already_sent(appt, 'reminder_24h'):
             dispatcher.send(user=appt.client, message_type='reminder_24h',
                             context=_build_context(appt), appointment=appt)
-            _send_email_reminder(appt, 'reminder_24h')
+            _send_email(appt, 'reminder_24h')
             sent_24h += 1
 
-    # Podsjetnik sat prije (prozor 45min–75min)
     for appt in Appointment.objects.filter(
         start_datetime__gte=now + timedelta(minutes=45),
         start_datetime__lte=now + timedelta(minutes=75),
@@ -132,7 +163,7 @@ def send_appointment_reminders():
         if not _already_sent(appt, 'reminder_1h'):
             dispatcher.send(user=appt.client, message_type='reminder_2h',
                             context=_build_context(appt), appointment=appt)
-            _send_email_reminder(appt, 'reminder_1h')
+            _send_email(appt, 'reminder_1h')
             sent_1h += 1
 
     logger.info(f"Reminders: {sent_24h} x 24h, {sent_1h} x 1h")
@@ -150,7 +181,7 @@ def send_cancellation_notification(self, appointment_id: str, cancelled_by: str 
         msg_type = 'cancellation' if cancelled_by == 'client' else 'cancellation_by_business'
         dispatcher.send(user=appt.client, message_type=msg_type,
                         context=_build_context(appt), appointment=appt)
-        _send_email_reminder(appt, 'cancellation')
+        _send_email(appt, 'cancellation')
     except Exception as exc:
         raise self.retry(exc=exc)
 

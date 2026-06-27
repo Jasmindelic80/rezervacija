@@ -62,6 +62,10 @@
           ✅ Potvrdi termin
         </button>
       </form>
+      <a href="{% url 'provider_reschedule_appointment' appointment.pk %}"
+         class="btn btn-outline-primary w-100 fw-700 rounded-3 mb-2">
+        Promijeni termin
+      </a>
       <form method="post" action="{% url 'provider_appointment_action' appointment.pk %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="cancel">
@@ -90,6 +94,10 @@
           👻 Nije se pojavio
         </button>
       </form>
+      <a href="{% url 'provider_reschedule_appointment' appointment.pk %}"
+         class="btn btn-outline-primary w-100 fw-700 rounded-3 mb-2">
+        Promijeni termin
+      </a>
       <form method="post" action="{% url 'provider_appointment_action' appointment.pk %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="cancel">

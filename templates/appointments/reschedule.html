@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}Promijeni termin — {{ appointment.business.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root { --primary:#1a6b4a; --primary-light:#e8f5ee; --border:#e5e7eb; --radius:12px; }
+  body { background:#f8faf9; }
+  .page-hero { background:linear-gradient(135deg,#1a6b4a 0%,#0f4a32 100%); color:white; padding:1.5rem 0; }
+  .card-section { background:white; border-radius:var(--radius); box-shadow:0 2px 16px rgba(0,0,0,.07);
+    padding:1.5rem; margin-bottom:1.25rem; }
+  .info-row { display:flex; justify-content:space-between; padding:.5rem 0;
+    border-bottom:1px solid var(--border); font-size:.95rem; }
+  .info-row:last-child { border-bottom:none; }
+  .info-row .lbl { color:#6b7280; }
+  .info-row .val { font-weight:700; }
+  .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center; }
+  .cal-header { font-size:.75rem; font-weight:700; color:#9ca3af; padding:.25rem; }
+  .cal-day { padding:.5rem .25rem; border-radius:8px; cursor:pointer; font-size:.9rem;
+    transition:all .15s; border:2px solid transparent; }
+  .cal-day:hover:not(.disabled) { background:var(--primary-light); border-color:var(--primary); }
+  .cal-day.selected { background:var(--primary); color:white; border-color:var(--primary); }
+  .cal-day.today { font-weight:800; }
+  .cal-day.disabled { color:#d1d5db; cursor:not-allowed; }
+  .slots-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:.5rem; }
+  .time-slot { padding:.6rem; text-align:center; border:2px solid var(--border);
+    border-radius:8px; cursor:pointer; font-size:.9rem; font-weight:600; transition:all .15s; }
+  .time-slot:hover { border-color:var(--primary); background:var(--primary-light); }
+  .time-slot.selected { background:var(--primary); color:white; border-color:var(--primary); }
+  .btn-save { background:var(--primary); color:white; border:none; border-radius:10px;
+    padding:.875rem 2rem; font-size:1rem; font-weight:700; cursor:pointer; width:100%; }
+  .btn-save:hover { background:#0f4a32; }
+  .btn-save:disabled { background:#9ca3af; cursor:not-allowed; }
+  .old-datetime { background:#fff7ed; border:1px solid #fed7aa; border-radius:8px;
+    padding:.75rem 1rem; font-size:.9rem; color:#92400e; margin-bottom:1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <div class="container">
+    <h1 class="h5 mb-0 fw-bold">Promjena termina</h1>
+    <p class="mb-0 opacity-75 small">{{ appointment.business.name }}</p>
+  </div>
+</div>
+
+<div class="container py-4" style="max-width:760px">
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }} mb-3">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Trenutni termin -->
+  <div class="card-section">
+    <h6 class="fw-700 mb-3">Trenutni termin</h6>
+    <div class="old-datetime">
+      📅 {{ appointment.start_datetime|date:"d.m.Y" }} u {{ appointment.start_datetime|time:"H:i" }}
+      {% if appointment.end_datetime %}— {{ appointment.end_datetime|time:"H:i" }}{% endif %}
+    </div>
+    <div class="info-row"><span class="lbl">Usluga</span><span class="val">{{ appointment.service.name|default:"—" }}</span></div>
+    <div class="info-row"><span class="lbl">Radnik</span><span class="val">{{ appointment.staff.name|default:"Bilo koji" }}</span></div>
+    <div class="info-row"><span class="lbl">Trajanje</span><span class="val">{{ appointment.service.duration_minutes }} min</span></div>
+  </div>
+
+  <!-- Novi termin — datum -->
+  <div class="card-section">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h6 class="fw-700 mb-0">Odaberite novi datum</h6>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(-1)">‹</button>
+        <strong id="month-label" style="min-width:130px;text-align:center"></strong>
+        <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+    <div class="calendar-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- Slobodni termini -->
+  <div class="card-section" id="slots-section" style="display:none">
+    <h6 class="fw-700 mb-3">Odaberite novi termin</h6>
+    <div id="slots-container"></div>
+  </div>
+
+  <!-- Potvrda -->
+  <form method="post" id="reschedule-form" style="display:none">
+    {% csrf_token %}
+    <input type="hidden" name="date" id="form-date">
+    <input type="hidden" name="time" id="form-time">
+
+    <div class="card-section">
+      <h6 class="fw-700 mb-3">Potvrda promjene</h6>
+      <div class="info-row"><span class="lbl">Novi datum</span><span class="val" id="summary-date">—</span></div>
+      <div class="info-row"><span class="lbl">Novo vrijeme</span><span class="val" id="summary-time">—</span></div>
+      <div class="info-row"><span class="lbl">Usluga</span><span class="val">{{ appointment.service.name }}</span></div>
+
+      <div class="d-flex gap-2 mt-3">
+        <a href="{% url 'my_appointments' %}" class="btn btn-outline-secondary flex-grow-1">Odustani</a>
+        <button type="submit" class="btn-save flex-grow-1">Potvrdi promjenu →</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+const BUSINESS_ID = "{{ appointment.business.id }}";
+const SERVICE_ID  = "{{ appointment.service.id }}";
+const STAFF_ID    = "{{ appointment.staff.id|default:'any' }}";
+const SLOTS_API   = "{% url 'slots_api' %}";
+
+const MONTHS = ['Januar','Februar','Mart','April','Maj','Juni',
+                'Juli','August','Septembar','Oktobar','Novembar','Decembar'];
+
+let calDate = new Date();
+let selectedDate = null;
+let selectedTime = null;
+
+function renderCalendar() {
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  document.getElementById('month-label').textContent = `${MONTHS[month]} ${year}`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+  let html = '';
+  ['Pon','Uto','Sri','Čet','Pet','Sub','Ned'].forEach(h => {
+    html += `<div class="cal-header">${h}</div>`;
+  });
+  for (let i = 0; i < startOffset; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(year, month, d);
+    const isPast = dt < today;
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    let cls = 'cal-day';
+    if (isPast) cls += ' disabled';
+    if (dt.getTime() === today.getTime()) cls += ' today';
+    if (ds === selectedDate) cls += ' selected';
+    html += isPast
+      ? `<div class="${cls}">${d}</div>`
+      : `<div class="${cls}" onclick="pickDate('${ds}')">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function changeMonth(delta) {
+  calDate.setMonth(calDate.getMonth() + delta);
+  renderCalendar();
+}
+
+async function pickDate(ds) {
+  selectedDate = ds;
+  selectedTime = null;
+  renderCalendar();
+  document.getElementById('reschedule-form').style.display = 'none';
+
+  const sec = document.getElementById('slots-section');
+  sec.style.display = 'block';
+  document.getElementById('slots-container').innerHTML =
+    '<div class="text-center text-muted py-3">' +
+    '<div style="display:inline-block;width:22px;height:22px;border:3px solid #e5e7eb;' +
+    'border-top-color:#1a6b4a;border-radius:50%;animation:spin .8s linear infinite"></div>' +
+    '<div class="mt-2 small">Učitavam slobodne termine...</div></div>';
+
+  try {
+    const p = new URLSearchParams({
+      business_id: BUSINESS_ID, service_id: SERVICE_ID, staff_id: STAFF_ID, date: ds
+    });
+    const data = await fetch(`${SLOTS_API}?${p}`).then(r => r.json());
+    if (data.slots && data.slots.length) {
+      let html = '<div class="slots-grid">';
+      data.slots.forEach(s => {
+        html += `<div class="time-slot" onclick="pickTime('${s}', event)">${s}</div>`;
+      });
+      html += '</div>';
+      document.getElementById('slots-container').innerHTML = html;
+    } else {
+      document.getElementById('slots-container').innerHTML =
+        '<div class="alert alert-warning">Nema slobodnih termina za ovaj dan.</div>';
+    }
+  } catch {
+    document.getElementById('slots-container').innerHTML =
+      '<div class="alert alert-danger">Greška pri učitavanju termina.</div>';
+  }
+}
+
+function pickTime(time, event) {
+  selectedTime = time;
+  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+  event.target.classList.add('selected');
+
+  const d = new Date(selectedDate);
+  const dateLabel = d.toLocaleDateString('bs-BA', {day:'2-digit', month:'2-digit', year:'numeric'});
+  document.getElementById('summary-date').textContent = dateLabel;
+  document.getElementById('summary-time').textContent = time;
+  document.getElementById('form-date').value = selectedDate;
+  document.getElementById('form-time').value = time;
+  document.getElementById('reschedule-form').style.display = 'block';
+}
+
+renderCalendar();
+</script>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+{% endblock %}

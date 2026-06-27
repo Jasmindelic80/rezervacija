@@ -95,6 +95,26 @@
     margin-top: 1rem; transition: transform 0.2s;
   }
   .cta-banner .btn-white:hover { transform: scale(1.03); }
+
+  @media (max-width: 600px) {
+    .search-bar {
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+    .search-bar select,
+    .search-bar input {
+      width: 100%;
+      min-width: 0;
+      font-size: 1rem;
+      padding: 0.85rem 1rem;
+    }
+    .search-bar button {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+    }
+  }
 </style>
 {% endblock %}
 

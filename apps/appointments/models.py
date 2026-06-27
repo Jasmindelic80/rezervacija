@@ -84,3 +84,6 @@ class Appointment(models.Model):
             self.status in [self.STATUS_PENDING, self.STATUS_CONFIRMED]
             and self.start_datetime > timezone.now() + timedelta(hours=2)
         )
+
+    def is_reschedulable(self):
+        return self.is_cancellable()

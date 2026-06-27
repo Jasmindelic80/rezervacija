@@ -78,8 +78,13 @@
             {% else %}badge-cancelled{% endif %}">
             {{ appt.get_status_display }}
           </span>
-          {% if appt.is_cancellable %}
-          <div class="mt-2">
+          {% if appt.is_reschedulable %}
+          <div class="mt-2 d-flex gap-1 justify-content-end flex-wrap">
+            <a href="{% url 'reschedule' appt.pk %}"
+               style="font-size:.8rem;color:#1a6b4a;border:1px solid #1a6b4a;border-radius:8px;
+                      padding:4px 12px;text-decoration:none;white-space:nowrap;">
+              Promijeni
+            </a>
             <a href="{% url 'cancel' appt.pk %}" class="btn-cancel">Otkaži</a>
           </div>
           {% endif %}

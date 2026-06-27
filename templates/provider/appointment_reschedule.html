@@ -1,0 +1,172 @@
+{% extends 'provider/base.html' %}
+{% block title %}Promijeni termin {{ appointment.start_datetime|date:"d.m.Y H:i" }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="{% url 'provider_appointment_detail' appointment.pk %}" class="text-muted fw-600" style="font-size:.875rem;text-decoration:none;">← Nazad na termin</a>
+</div>
+
+<h4 class="fw-800 mb-4">Promjena termina</h4>
+
+{% if messages %}
+  {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} mb-3">{{ msg }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-md-7">
+
+    <!-- Trenutni termin -->
+    <div class="card p-4 mb-3">
+      <h6 class="fw-700 mb-3">Trenutni termin</h6>
+      <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:.75rem 1rem;font-size:.9rem;color:#92400e;margin-bottom:.75rem;">
+        📅 {{ appointment.start_datetime|date:"d.m.Y" }} u {{ appointment.start_datetime|time:"H:i" }} – {{ appointment.end_datetime|time:"H:i" }}
+      </div>
+      <div class="d-flex justify-content-between py-2 border-bottom small">
+        <span class="text-muted">Klijent</span>
+        <span class="fw-600">{{ appointment.client.get_full_name|default:appointment.client.username }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2 border-bottom small">
+        <span class="text-muted">Usluga</span>
+        <span class="fw-600">{{ appointment.service.name|default:"—" }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2 small">
+        <span class="text-muted">Radnik</span>
+        <span class="fw-600">{{ appointment.staff.name|default:"Bilo koji" }}</span>
+      </div>
+    </div>
+
+    <!-- Odabir datuma -->
+    <div class="card p-4 mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-700 mb-0">Novi datum</h6>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(-1)">‹</button>
+          <strong id="month-label" style="min-width:130px;text-align:center"></strong>
+          <button class="btn btn-sm btn-outline-secondary" onclick="changeMonth(1)">›</button>
+        </div>
+      </div>
+      <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;"></div>
+    </div>
+
+    <!-- Slobodni termini -->
+    <div class="card p-4 mb-3" id="slots-section" style="display:none">
+      <h6 class="fw-700 mb-3">Slobodni termini</h6>
+      <div id="slots-container"></div>
+    </div>
+
+    <!-- Forma za potvrdu -->
+    <form method="post" id="reschedule-form" style="display:none">
+      {% csrf_token %}
+      <input type="hidden" name="date" id="form-date">
+      <input type="hidden" name="time" id="form-time">
+      <div class="card p-4">
+        <h6 class="fw-700 mb-3">Potvrda promjene</h6>
+        <div class="d-flex justify-content-between py-2 border-bottom small">
+          <span class="text-muted">Novi datum</span><span class="fw-700" id="summary-date">—</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 small">
+          <span class="text-muted">Novo vrijeme</span><span class="fw-700" id="summary-time">—</span>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <a href="{% url 'provider_appointment_detail' appointment.pk %}" class="btn btn-outline-secondary flex-grow-1">Odustani</a>
+          <button type="submit" class="btn flex-grow-1 fw-700" style="background:#1a6b4a;color:white;border-radius:8px;">Sačuvaj promjenu →</button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+const BUSINESS_ID = "{{ appointment.business.id }}";
+const SERVICE_ID  = "{{ appointment.service.id }}";
+const STAFF_ID    = "{{ appointment.staff.id|default:'any' }}";
+const SLOTS_API   = "{% url 'slots_api' %}";
+
+const MONTHS = ['Januar','Februar','Mart','April','Maj','Juni',
+                'Juli','August','Septembar','Oktobar','Novembar','Decembar'];
+
+let calDate = new Date();
+let selectedDate = null;
+
+function renderCalendar() {
+  const year = calDate.getFullYear(), month = calDate.getMonth();
+  document.getElementById('month-label').textContent = `${MONTHS[month]} ${year}`;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const offset = firstDay === 0 ? 6 : firstDay - 1;
+  let html = '';
+  ['Pon','Uto','Sri','Čet','Pet','Sub','Ned'].forEach(h => {
+    html += `<div style="font-size:.75rem;font-weight:700;color:#9ca3af;padding:.25rem;text-align:center">${h}</div>`;
+  });
+  for (let i = 0; i < offset; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(year, month, d);
+    const isPast = dt < today;
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isSelected = ds === selectedDate;
+    const isToday = dt.getTime() === today.getTime();
+    let style = 'padding:.5rem .25rem;border-radius:8px;font-size:.9rem;border:2px solid transparent;';
+    if (isPast) style += 'color:#d1d5db;';
+    else if (isSelected) style += 'background:#1a6b4a;color:white;cursor:pointer;';
+    else style += 'cursor:pointer;';
+    if (isToday && !isSelected) style += 'font-weight:800;';
+    html += isPast
+      ? `<div style="${style}">${d}</div>`
+      : `<div style="${style}" onmouseover="this.style.background=this.style.background||'#e8f5ee'" onmouseout="if('${ds}'!==selectedDate)this.style.background=''" onclick="pickDate('${ds}')">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function changeMonth(delta) {
+  calDate.setMonth(calDate.getMonth() + delta);
+  renderCalendar();
+}
+
+async function pickDate(ds) {
+  selectedDate = ds;
+  renderCalendar();
+  document.getElementById('reschedule-form').style.display = 'none';
+  const sec = document.getElementById('slots-section');
+  sec.style.display = 'block';
+  document.getElementById('slots-container').innerHTML = '<div class="text-center text-muted py-2 small">Učitavam...</div>';
+  try {
+    const p = new URLSearchParams({ business_id: BUSINESS_ID, service_id: SERVICE_ID, staff_id: STAFF_ID, date: ds });
+    const data = await fetch(`${SLOTS_API}?${p}`).then(r => r.json());
+    if (data.slots && data.slots.length) {
+      let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:.5rem">';
+      data.slots.forEach(s => {
+        html += `<div onclick="pickTime('${s}',event)" style="padding:.6rem;text-align:center;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:600;">${s}</div>`;
+      });
+      html += '</div>';
+      document.getElementById('slots-container').innerHTML = html;
+    } else {
+      document.getElementById('slots-container').innerHTML = '<div class="alert alert-warning small">Nema slobodnih termina.</div>';
+    }
+  } catch {
+    document.getElementById('slots-container').innerHTML = '<div class="alert alert-danger small">Greška.</div>';
+  }
+}
+
+function pickTime(time, event) {
+  document.querySelectorAll('#slots-container div[onclick]').forEach(el => {
+    el.style.background = ''; el.style.color = ''; el.style.borderColor = '#e5e7eb';
+  });
+  event.target.style.background = '#1a6b4a';
+  event.target.style.color = 'white';
+  event.target.style.borderColor = '#1a6b4a';
+
+  const d = new Date(selectedDate);
+  document.getElementById('summary-date').textContent = d.toLocaleDateString('bs-BA',{day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('summary-time').textContent = time;
+  document.getElementById('form-date').value = selectedDate;
+  document.getElementById('form-time').value = time;
+  document.getElementById('reschedule-form').style.display = 'block';
+}
+
+renderCalendar();
+</script>
+{% endblock %}

@@ -232,6 +232,57 @@ def provider_appointment_create(request, slug):
 
 
 @login_required
+def provider_reschedule_appointment(request, pk):
+    appointment = get_object_or_404(Appointment, pk=pk, business__owner=request.user)
+
+    if appointment.status not in (Appointment.STATUS_PENDING, Appointment.STATUS_CONFIRMED):
+        messages.error(request, 'Ovaj termin nije moguće premjestiti.')
+        return redirect('provider_appointment_detail', pk=pk)
+
+    if request.method == 'POST':
+        date_str = request.POST.get('date')
+        time_str = request.POST.get('time')
+
+        try:
+            from apps.availability.utils import get_available_slots
+            selected_date = date.fromisoformat(date_str)
+            selected_time = datetime.strptime(time_str, '%H:%M').time()
+            start_dt = datetime.combine(selected_date, selected_time)
+
+            available = get_available_slots(
+                appointment.business, appointment.service, appointment.staff, selected_date
+            )
+            slot_times = [s.strftime('%H:%M') for s in available]
+
+            if time_str not in slot_times:
+                messages.error(request, 'Ovaj termin nije slobodan. Odaberite drugi.')
+                return redirect('provider_reschedule_appointment', pk=pk)
+
+            duration = timedelta(minutes=appointment.service.duration_minutes)
+            appointment.start_datetime = timezone.make_aware(start_dt)
+            appointment.end_datetime = timezone.make_aware(start_dt) + duration
+            appointment.save(update_fields=['start_datetime', 'end_datetime', 'updated_at'])
+
+            messages.success(
+                request,
+                f'Termin je premješten na {appointment.start_datetime:%d.%m.%Y u %H:%M}.'
+            )
+            return redirect('provider_appointment_detail', pk=pk)
+
+        except Exception as e:
+            messages.error(request, f'Greška: {e}')
+
+    ctx = _provider_context(request)
+    ctx.update({
+        'appointment': appointment,
+        'active_business': appointment.business,
+        'today': date.today().isoformat(),
+        'max_date': (date.today() + timedelta(days=60)).isoformat(),
+    })
+    return render(request, 'provider/appointment_reschedule.html', ctx)
+
+
+@login_required
 def provider_working_hours(request, slug):
     business = _get_provider_business(request, slug)
 
