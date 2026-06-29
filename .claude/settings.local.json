@@ -55,7 +55,12 @@
       "Bash(git -C /var/www/mojaapp ls-files staticfiles/staticfiles.json)",
       "Bash(git -C /var/www/mojaapp ls-files --others --exclude-standard templates/legal/)",
       "Bash(git -C /var/www/mojaapp ls-files locale/)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(git config *)",
+      "Bash(git push *)",
+      "Bash(xargs ls)",
+      "Read(//etc/supervisor/**)",
+      "Read(//etc/systemd/system/**)"
     ]
   }
 }

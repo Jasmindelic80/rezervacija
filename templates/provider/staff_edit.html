@@ -1,0 +1,52 @@
+{% extends 'provider/base.html' %}
+{% block title %}Uredi — {{ member.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{% url 'provider_staff' business.slug %}" class="text-muted" style="text-decoration:none;">← Osoblje</a>
+  <span class="text-muted">/</span>
+  <h1 class="fw-800 fs-3 mb-0">{{ member.name }}</h1>
+</div>
+
+<div class="card p-4" style="max-width:600px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label fw-600">Ime i prezime *</label>
+      <input type="text" name="name" class="form-control" value="{{ member.name }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-600">Titula / specijalizacija</label>
+      <input type="text" name="title" class="form-control" value="{{ member.title }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-600">Redoslijed prikaza</label>
+      <input type="number" name="order" class="form-control" value="{{ member.order }}" min="0" style="max-width:120px;">
+      <div class="form-text">Manji broj = prikazuje se ranije.</div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-600">Bio / opis</label>
+      <textarea name="bio" class="form-control" rows="3">{{ member.bio }}</textarea>
+    </div>
+    <div class="mb-4">
+      <label class="form-label fw-600">Fotografija</label>
+      {% if member.photo %}
+        <div class="mb-2">
+          <img src="{{ member.photo.url }}" alt="{{ member.name }}"
+               style="width:80px;height:80px;border-radius:50%;object-fit:cover;">
+        </div>
+      {% endif %}
+      <input type="file" name="photo" class="form-control" accept="image/*">
+      <div class="form-text">Ostavite prazno da zadržite postojeću fotografiju.</div>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn fw-700 px-4" style="background:var(--primary);color:white;border-radius:8px;">
+        Sačuvaj izmjene
+      </button>
+      <a href="{% url 'provider_staff' business.slug %}" class="btn btn-outline-secondary fw-600" style="border-radius:8px;">
+        Odustani
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

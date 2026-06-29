@@ -144,6 +144,10 @@
      class="{% if request.resolver_match.url_name == 'manage_services' %}active{% endif %}">
     <span class="icon">🛎️</span> Usluge
   </a>
+  <a href="{% url 'provider_staff' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'provider_staff' or request.resolver_match.url_name == 'provider_staff_edit' %}active{% endif %}">
+    <span class="icon">👥</span> Osoblje
+  </a>
   <a href="{% url 'business_detail' biz.slug %}" target="_blank">
     <span class="icon">🌐</span> Javna stranica
   </a>

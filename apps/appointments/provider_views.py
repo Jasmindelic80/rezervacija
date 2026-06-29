@@ -390,6 +390,162 @@ def provider_blocked_slot_delete(request, pk):
 
 
 @login_required
+def provider_staff(request, slug):
+    business = _get_provider_business(request, slug)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        title = request.POST.get('title', '').strip()
+        bio = request.POST.get('bio', '').strip()
+
+        if name:
+            staff = Staff.objects.create(
+                business=business,
+                name=name,
+                title=title,
+                bio=bio,
+            )
+            if request.FILES.get('photo'):
+                staff.photo = request.FILES['photo']
+                staff.save()
+            messages.success(request, f'"{name}" je dodan u tim.')
+        else:
+            messages.error(request, 'Ime je obavezno.')
+
+        return redirect('provider_staff', slug=slug)
+
+    staff_list = Staff.objects.filter(business=business).order_by('order', 'name')
+    ctx = _provider_context(request)
+    ctx.update({
+        'business': business,
+        'active_business': business,
+        'staff_list': staff_list,
+    })
+    return render(request, 'provider/staff.html', ctx)
+
+
+@login_required
+def provider_staff_edit(request, slug, staff_id):
+    business = _get_provider_business(request, slug)
+    member = get_object_or_404(Staff, id=staff_id, business=business)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if not name:
+            messages.error(request, 'Ime je obavezno.')
+            return redirect('provider_staff', slug=slug)
+
+        member.name = name
+        member.title = request.POST.get('title', '').strip()
+        member.bio = request.POST.get('bio', '').strip()
+        order = request.POST.get('order', '').strip()
+        if order.isdigit():
+            member.order = int(order)
+        if request.FILES.get('photo'):
+            member.photo = request.FILES['photo']
+        member.save()
+        messages.success(request, f'"{member.name}" je ažuriran.')
+        return redirect('provider_staff', slug=slug)
+
+    ctx = _provider_context(request)
+    ctx.update({
+        'business': business,
+        'active_business': business,
+        'member': member,
+    })
+    return render(request, 'provider/staff_edit.html', ctx)
+
+
+@login_required
+def provider_staff_delete(request, slug, staff_id):
+    business = _get_provider_business(request, slug)
+    member = get_object_or_404(Staff, id=staff_id, business=business)
+
+    if request.method == 'POST':
+        name = member.name
+        member.delete()
+        messages.success(request, f'"{name}" je uklonjen iz tima.')
+
+    return redirect('provider_staff', slug=slug)
+
+
+@login_required
+def provider_staff_toggle(request, slug, staff_id):
+    business = _get_provider_business(request, slug)
+    member = get_object_or_404(Staff, id=staff_id, business=business)
+
+    if request.method == 'POST':
+        member.is_active = not member.is_active
+        member.save()
+
+    return redirect('provider_staff', slug=slug)
+
+
+@login_required
+def provider_staff_working_hours(request, slug, staff_id):
+    business = _get_provider_business(request, slug)
+    member = get_object_or_404(Staff, id=staff_id, business=business)
+
+    if request.method == 'POST':
+        use_custom = bool(request.POST.get('use_custom'))
+
+        if not use_custom:
+            WorkingHours.objects.filter(business=business, staff=member).delete()
+            messages.success(request, f'{member.name} koristi radno vrijeme salona.')
+        else:
+            for day_num, day_name in DAYS_OF_WEEK:
+                is_closed = bool(request.POST.get(f'closed_{day_num}'))
+                open_time = request.POST.get(f'open_{day_num}') or None
+                close_time = request.POST.get(f'close_{day_num}') or None
+
+                WorkingHours.objects.update_or_create(
+                    business=business,
+                    staff=member,
+                    day_of_week=day_num,
+                    defaults={
+                        'is_closed': is_closed,
+                        'open_time': None if is_closed else open_time,
+                        'close_time': None if is_closed else close_time,
+                    }
+                )
+            messages.success(request, f'Radno vrijeme za {member.name} je sačuvano.')
+
+        return redirect('provider_staff_working_hours', slug=slug, staff_id=staff_id)
+
+    existing = {wh.day_of_week: wh for wh in
+                WorkingHours.objects.filter(business=business, staff=member)}
+
+    business_hours = {wh.day_of_week: wh for wh in
+                      WorkingHours.objects.filter(business=business, staff__isnull=True)}
+
+    has_custom = bool(existing)
+
+    days = []
+    for day_num, day_name in DAYS_OF_WEEK:
+        wh = existing.get(day_num)
+        biz_wh = business_hours.get(day_num)
+        days.append({
+            'day': day_num,
+            'name': day_name,
+            'is_closed': wh.is_closed if wh else (biz_wh.is_closed if biz_wh else day_num >= 6),
+            'open_time': wh.open_time.strftime('%H:%M') if wh and wh.open_time else (
+                biz_wh.open_time.strftime('%H:%M') if biz_wh and biz_wh.open_time else '09:00'),
+            'close_time': wh.close_time.strftime('%H:%M') if wh and wh.close_time else (
+                biz_wh.close_time.strftime('%H:%M') if biz_wh and biz_wh.close_time else '17:00'),
+        })
+
+    ctx = _provider_context(request)
+    ctx.update({
+        'business': business,
+        'active_business': business,
+        'member': member,
+        'days': days,
+        'has_custom': has_custom,
+    })
+    return render(request, 'provider/staff_working_hours.html', ctx)
+
+
+@login_required
 def provider_calendar(request, slug):
     business = _get_provider_business(request, slug)
 

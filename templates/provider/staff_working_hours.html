@@ -1,0 +1,119 @@
+{% extends 'provider/base.html' %}
+{% block title %}Radno vrijeme — {{ member.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{% url 'provider_staff' business.slug %}" class="text-muted" style="text-decoration:none;">← Osoblje</a>
+  <span class="text-muted">/</span>
+  <h1 class="fw-800 fs-3 mb-0">Radno vrijeme — {{ member.name }}</h1>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <div class="card p-4 mb-3">
+      <form method="post" id="main-form">
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <div class="form-check form-switch" style="transform:scale(1.2);transform-origin:left;">
+            <input class="form-check-input" type="checkbox" name="use_custom" id="use_custom"
+                   {% if has_custom %}checked{% endif %}>
+            <label class="form-check-label fw-700 ms-1" for="use_custom">
+              Koristiti posebno radno vrijeme za {{ member.name }}
+            </label>
+          </div>
+          <div class="text-muted small mt-1" id="mode-hint">
+            {% if has_custom %}
+              Trenutno: posebno radno vrijeme (razlikuje se od salona).
+            {% else %}
+              Trenutno: koristi radno vrijeme salona.
+            {% endif %}
+          </div>
+        </div>
+
+        <div id="hours-table" {% if not has_custom %}style="display:none;opacity:.5;pointer-events:none;"{% endif %}>
+          <div class="table-responsive">
+            <table class="table align-middle mb-4">
+              <thead>
+                <tr>
+                  <th style="width:130px;">Dan</th>
+                  <th style="width:110px;">Ne radi</th>
+                  <th>Od</th>
+                  <th>Do</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for day in days %}
+                <tr id="row-{{ day.day }}">
+                  <td class="fw-700">{{ day.name }}</td>
+                  <td>
+                    <div class="form-check form-switch">
+                      <input class="form-check-input day-closed" type="checkbox"
+                             name="closed_{{ day.day }}"
+                             id="closed_{{ day.day }}"
+                             data-day="{{ day.day }}"
+                             {% if day.is_closed %}checked{% endif %}>
+                    </div>
+                  </td>
+                  <td>
+                    <input type="time" name="open_{{ day.day }}"
+                           class="form-control form-control-sm day-time-{{ day.day }}"
+                           value="{{ day.open_time|default:'09:00' }}"
+                           {% if day.is_closed %}disabled{% endif %}>
+                  </td>
+                  <td>
+                    <input type="time" name="close_{{ day.day }}"
+                           class="form-control form-control-sm day-time-{{ day.day }}"
+                           value="{{ day.close_time|default:'17:00' }}"
+                           {% if day.is_closed %}disabled{% endif %}>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <button type="submit" class="btn w-100 fw-700 py-2" style="background:var(--primary);color:white;border-radius:10px;">
+          Sačuvaj
+        </button>
+      </form>
+    </div>
+
+    <div class="text-muted small text-center">
+      Ako nema posebnog radnog vremena, sistem koristi radno vrijeme salona za provjeru dostupnosti.
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  const useCustom = document.getElementById('use_custom');
+  const hoursTable = document.getElementById('hours-table');
+  const hint = document.getElementById('mode-hint');
+
+  useCustom.addEventListener('change', () => {
+    if (useCustom.checked) {
+      hoursTable.style.display = '';
+      hoursTable.style.opacity = '1';
+      hoursTable.style.pointerEvents = '';
+      hint.textContent = 'Posebno radno vrijeme će biti primijenjeno za ovog člana.';
+    } else {
+      hoursTable.style.opacity = '.5';
+      hoursTable.style.pointerEvents = 'none';
+      hint.textContent = 'Posebno radno vrijeme će biti obrisano — koristit će se radno vrijeme salona.';
+    }
+  });
+
+  document.querySelectorAll('.day-closed').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const day = chk.dataset.day;
+      document.querySelectorAll('.day-time-' + day).forEach(inp => {
+        inp.disabled = chk.checked;
+      });
+    });
+  });
+</script>
+{% endblock %}
+{% endblock %}

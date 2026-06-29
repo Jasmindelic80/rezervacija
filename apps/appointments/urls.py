@@ -23,4 +23,9 @@ urlpatterns = [
     path('blokada/<int:pk>/obrisi/', provider_views.provider_blocked_slot_delete, name='provider_blocked_slot_delete'),
     path('kalendar/<slug:slug>/', provider_views.provider_calendar, name='provider_calendar'),
     path('kalendar/<slug:slug>/dan/', provider_views.provider_calendar_day, name='provider_calendar_day'),
+    path('osoblje/<slug:slug>/', provider_views.provider_staff, name='provider_staff'),
+    path('osoblje/<slug:slug>/<int:staff_id>/uredi/', provider_views.provider_staff_edit, name='provider_staff_edit'),
+    path('osoblje/<slug:slug>/<int:staff_id>/obrisi/', provider_views.provider_staff_delete, name='provider_staff_delete'),
+    path('osoblje/<slug:slug>/<int:staff_id>/toggle/', provider_views.provider_staff_toggle, name='provider_staff_toggle'),
+    path('osoblje/<slug:slug>/<int:staff_id>/radno-vrijeme/', provider_views.provider_staff_working_hours, name='provider_staff_working_hours'),
 ]

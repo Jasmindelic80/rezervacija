@@ -1,0 +1,106 @@
+{% extends 'provider/base.html' %}
+{% block title %}Osoblje — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 class="fw-800 fs-3 mb-1">Osoblje</h1>
+    <p class="text-muted mb-0">{{ business.name }}</p>
+  </div>
+</div>
+
+{% if staff_list %}
+<div class="card mb-4">
+  <div class="table-responsive">
+    <table class="table p-table mb-0">
+      <thead>
+        <tr>
+          <th>Ime</th>
+          <th>Titula</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in staff_list %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              {% if member.photo %}
+                <img src="{{ member.photo.url }}" alt="{{ member.name }}"
+                     style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+              {% else %}
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--primary);color:white;
+                            display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;">
+                  {{ member.name|first|upper }}
+                </div>
+              {% endif %}
+              <span class="fw-700">{{ member.name }}</span>
+            </div>
+          </td>
+          <td class="text-muted">{{ member.title|default:"—" }}</td>
+          <td>
+            <form method="post" action="{% url 'provider_staff_toggle' business.slug member.id %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="badge border-0 {% if member.is_active %}badge-confirmed{% else %}badge-cancelled{% endif %}"
+                      style="cursor:pointer;font-size:.8rem;padding:.4em .7em;">
+                {% if member.is_active %}Aktivan{% else %}Neaktivan{% endif %}
+              </button>
+            </form>
+          </td>
+          <td>
+            <div class="d-flex gap-2 justify-content-end">
+              <a href="{% url 'provider_staff_working_hours' business.slug member.id %}"
+                 class="btn btn-sm btn-outline-secondary fw-600" style="border-radius:6px;">🕐 Radno vrijeme</a>
+              <a href="{% url 'provider_staff_edit' business.slug member.id %}"
+                 class="btn btn-sm btn-outline-secondary fw-600" style="border-radius:6px;">Uredi</a>
+              <form method="post" action="{% url 'provider_staff_delete' business.slug member.id %}"
+                    onsubmit="return confirm('Ukloniti {{ member.name }} iz tima?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger fw-600" style="border-radius:6px;">Ukloni</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-4 text-muted mb-4">
+  <div style="font-size:2.5rem;">👥</div>
+  <p class="mt-2 mb-0">Nemate dodanog osoblja. Dodajte prvog člana ispod.</p>
+  <p class="small mt-1 text-muted">Ako ne dodate osoblje, klijenti neće moći birati majstora pri rezervaciji.</p>
+</div>
+{% endif %}
+
+<div class="card p-4">
+  <h6 class="fw-700 mb-3 text-muted text-uppercase" style="font-size:.75rem;letter-spacing:.08em;">Dodaj novog člana tima</h6>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row g-3 mb-3">
+      <div class="col-md-5">
+        <label class="form-label fw-600">Ime i prezime *</label>
+        <input type="text" name="name" class="form-control" placeholder="npr. Amer Hodžić" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600">Titula / specijalizacija <span class="text-muted fw-400">(opcionalno)</span></label>
+        <input type="text" name="title" class="form-control" placeholder="npr. Senior frizer, Kolorist">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-600">Fotografija <span class="text-muted fw-400">(opcionalno)</span></label>
+        <input type="file" name="photo" class="form-control" accept="image/*">
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="form-label fw-600">Bio / opis <span class="text-muted fw-400">(opcionalno)</span></label>
+      <textarea name="bio" class="form-control" rows="2"
+                placeholder="Kratki opis majstora, iskustvo, specijalnosti..."></textarea>
+    </div>
+    <button type="submit" class="btn fw-700 px-4" style="background:var(--primary);color:white;border-radius:8px;">
+      + Dodaj u tim
+    </button>
+  </form>
+</div>
+{% endblock %}
