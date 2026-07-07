@@ -189,8 +189,7 @@ def send_cancellation_notification(self, appointment_id: str, cancelled_by: str 
 def _build_context(appointment) -> dict:
     """Izgradi context dict iz Appointment objekta"""
     from django.urls import reverse
-    cancel_url = f"https://rezervisi.ba{reverse('cancel', kwargs={'pk': appointment.pk})}"
-
+    cancel_url = f"http://65.109.6.156{reverse('cancel', kwargs={'pk': appointment.pk})}"
     return {
         'client_name': appointment.client.first_name or appointment.client.username,
         'business_name': appointment.business.name,

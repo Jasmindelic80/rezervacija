@@ -60,7 +60,11 @@
       "Bash(git push *)",
       "Bash(xargs ls)",
       "Read(//etc/supervisor/**)",
-      "Read(//etc/systemd/system/**)"
+      "Read(//etc/systemd/system/**)",
+      "Bash(xargs -I{} sh -c 'echo \"== {} ==\"; grep -n -i \"google\\\\|facebook\" {}'os stoje 22)",
+      "Bash(supervisorctl status *)",
+      "Bash(sudo -n systemctl restart bookbih.service)",
+      "Bash(systemctl restart *)"
     ]
   }
 }

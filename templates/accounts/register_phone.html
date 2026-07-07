@@ -131,7 +131,8 @@
       <button type="submit" class="btn-auth">Pošalji kod na email →</button>
     </form>
 
-    <!-- Social login -->
+    {% comment %}
+    <!-- Social login (skriveno dok nije u upotrebi) -->
     <div style="display:flex;align-items:center;gap:.75rem;margin:1.25rem 0;">
       <div style="flex:1;height:1px;background:#e5e7eb;"></div>
       <span style="font-size:.8rem;color:#9ca3af;font-weight:600;">ili nastavi sa</span>
@@ -153,11 +154,11 @@
         Facebook
       </a>
     </div>
+    {% endcomment %}
 
     <div class="auth-foot" style="margin-top:1rem;">
       Već imaš nalog? <a href="{% url 'login' %}">Prijavi se</a>
-      &nbsp;·&nbsp;
-      <a href="{% url 'register_simple' %}">Registracija bez koda</a>
+      {% comment %}&nbsp;·&nbsp;<a href="{% url 'register_simple' %}">Registracija bez koda</a>{% endcomment %}
     </div>
   </div>
 </div>
