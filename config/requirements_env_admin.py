@@ -40,7 +40,7 @@ CELERY_RESULT_BACKEND=redis://localhost:6379/0
 # Registracija: https://www.infobip.com/
 INFOBIP_API_KEY=
 INFOBIP_BASE_URL=xxxxx.api.infobip.com
-VIBER_SENDER_NAME=RezervišiBiH
+VIBER_SENDER_NAME=BookBiH
 
 # Meta WhatsApp Cloud API
 # Kreiranje: https://developers.facebook.com/docs/whatsapp/cloud-api/get-started
@@ -59,7 +59,7 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
-DEFAULT_FROM_EMAIL=RezervišiBiH <terminbih@gmail.com>
+DEFAULT_FROM_EMAIL=BookBiH <terminbih@gmail.com>
 
 
 # ============================================================

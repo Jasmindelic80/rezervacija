@@ -10,32 +10,32 @@ from django.core.mail import send_mail
 logger = logging.getLogger(__name__)
 
 MESSAGES = {
-    'register': 'RezervišiBiH: Vaš kod za verifikaciju je {otp}. Važi 10 minuta.',
-    'login':    'RezervišiBiH: Kod za prijavu je {otp}. Važi 10 minuta.',
-    'reset':    'RezervišiBiH: Kod za reset lozinke je {otp}. Važi 10 minuta.',
+    'register': 'BookBiH: Vaš kod za verifikaciju je {otp}. Važi 10 minuta.',
+    'login':    'BookBiH: Kod za prijavu je {otp}. Važi 10 minuta.',
+    'reset':    'BookBiH: Kod za reset lozinke je {otp}. Važi 10 minuta.',
 }
 
 EMAIL_SUBJECTS = {
-    'register': 'RezervišiBiH — Verifikacijski kod',
-    'login':    'RezervišiBiH — Kod za prijavu',
-    'reset':    'RezervišiBiH — Kod za reset lozinke',
+    'register': 'BookBiH — Verifikacijski kod',
+    'login':    'BookBiH — Kod za prijavu',
+    'reset':    'BookBiH — Kod za reset lozinke',
 }
 
 
 def send_otp_email(email: str, otp: str, purpose: str = 'register') -> bool:
     message = MESSAGES.get(purpose, f'Vaš kod je {otp}').format(otp=otp)
-    subject = EMAIL_SUBJECTS.get(purpose, 'RezervišiBiH — Kod')
+    subject = EMAIL_SUBJECTS.get(purpose, 'BookBiH — Kod')
     body = (
         f"{message}\n\n"
         f"Kod je: {otp}\n\n"
         f"Kod važi 10 minuta. Ako niste tražili ovaj kod, ignorišite poruku.\n\n"
-        f"— Tim RezervišiBiH"
+        f"— Tim BookBiH"
     )
     try:
         send_mail(
             subject=subject,
             message=body,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'RezervišiBiH <terminbih@gmail.com>'),
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'BookBiH <terminbih@gmail.com>'),
             recipient_list=[email],
             fail_silently=False,
         )
@@ -120,7 +120,7 @@ def _send_sms(phone: str, message: str, base_url: str, headers: dict) -> bool:
 
 
 def _send_viber(phone: str, message: str, base_url: str, headers: dict) -> bool:
-    sender = getattr(settings, 'VIBER_SENDER_NAME', 'RezervišiBiH')
+    sender = getattr(settings, 'VIBER_SENDER_NAME', 'BookBiH')
     resp = requests.post(
         f'https://{base_url}/viber/2/messages',
         headers=headers,

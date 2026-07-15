@@ -84,6 +84,11 @@ class Business(models.Model):
                 slug = f"{base}-{counter}"
                 counter += 1
             self.slug = slug
+        if (self.latitude is None or self.longitude is None) and self.city:
+            from .city_coords import lookup_city_coords
+            coords = lookup_city_coords(self.city)
+            if coords[0] is not None:
+                self.latitude, self.longitude = coords
         super().save(*args, **kwargs)
 
     def average_rating(self):
@@ -142,6 +147,25 @@ class BusinessPhoto(models.Model):
 
     class Meta:
         ordering = ['order', 'created_at']
+
+
+class BlockedClient(models.Model):
+    """Klijent kojeg je vlasnik biznisa blokirao (npr. zbog zloupotrebe rezervacija)"""
+    business = models.ForeignKey(
+        Business, on_delete=models.CASCADE, related_name='blocked_clients'
+    )
+    client = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='blocked_by_businesses'
+    )
+    reason = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('business', 'client')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.client} blokiran @ {self.business.name}"
 
 
 class Review(models.Model):

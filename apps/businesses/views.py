@@ -10,99 +10,9 @@ import json
 from .models import Business, Category
 from apps.services.models import Service
 from apps.availability.utils import get_available_slots, get_next_available_date
+from .city_coords import CITY_COORDS, fold_city_name, lookup_city_coords as _lookup_city_coords
 
-CITY_COORDS = {
-    'Sarajevo': (43.8563, 18.4131),
-    'Banja Luka': (44.7722, 17.1910),
-    'Tuzla': (44.5384, 18.6736),
-    'Zenica': (44.2019, 17.9078),
-    'Mostar': (43.3438, 17.8078),
-    'Bijeljina': (44.7578, 19.2144),
-    'Brčko': (44.8694, 18.8097),
-    'Prijedor': (44.9799, 16.7147),
-    'Trebinje': (42.7113, 18.3441),
-    'Travnik': (44.2264, 17.6633),
-    'Cazin': (45.2211, 15.9431),
-    'Bihać': (44.8175, 15.8706),
-    'Visoko': (43.9897, 18.1764),
-    'Konjic': (43.6514, 17.9613),
-    'Livno': (43.8250, 17.0094),
-    'Doboj': (44.7317, 18.0856),
-    'Goražde': (43.6667, 18.9778),
-    'Foča': (43.5072, 18.7758),
-    'Zvornik': (44.3869, 19.1025),
-    'Gradiška': (45.1494, 17.2531),
-    'Lukavac': (44.5394, 18.5267),
-    'Kakanj': (44.1272, 18.1025),
-    'Vitez': (44.1572, 17.7894),
-    'Hadžići': (43.8233, 18.2022),
-    'Ilijaš': (43.9575, 18.2706),
-    'Vogošća': (43.9000, 18.3378),
-    'Ilidža': (43.8300, 18.3100),
-    'Pale': (43.8181, 18.5683),
-    'Tešanj': (44.6128, 17.9872),
-    'Gradačac': (44.8794, 18.4269),
-    'Gračanica': (44.7008, 18.3053),
-    'Žepče': (44.4258, 18.0400),
-    'Zavidovići': (44.4431, 18.1497),
-    'Maglaj': (44.5500, 18.0969),
-    'Jajce': (44.3414, 17.2703),
-    'Bugojno': (44.0564, 17.4503),
-    'Fojnica': (43.9681, 17.9025),
-    'Breza': (43.9992, 18.2639),
-    'Vareš': (44.1650, 18.3289),
-    'Olovo': (44.1258, 18.6467),
-    'Kladanj': (44.2278, 18.6928),
-    'Kotor Varoš': (44.6194, 17.3731),
-    'Laktaši': (44.9000, 17.2986),
-    'Šipovo': (44.2764, 17.0900),
-    'Glamoč': (43.9686, 16.8494),
-    'Drvar': (44.3731, 16.3806),
-    'Sanski Most': (44.7681, 16.6694),
-    'Ključ': (44.5339, 16.7719),
-    'Bosanska Krupa': (44.8833, 16.1500),
-    'Bosanski Petrovac': (44.5497, 16.3703),
-    'Čapljina': (43.1108, 17.6942),
-    'Ljubuški': (43.1978, 17.5506),
-    'Široki Brijeg': (43.3836, 17.5964),
-    'Grude': (43.3697, 17.4333),
-    'Posušje': (43.4689, 17.3261),
-    'Tomislavgrad': (43.7158, 17.2294),
-    'Neum': (42.9253, 17.6147),
-    'Stolac': (43.0847, 17.9556),
-    'Berkovići': (43.1544, 18.3250),
-    'Gacko': (43.1669, 18.5358),
-    'Nevesinje': (43.2578, 18.1136),
-    'Kalinovik': (43.5097, 18.4361),
-    'Rogatica': (43.8003, 19.0025),
-    'Sokolac': (43.9356, 18.7975),
-    'Han Pijesak': (44.0736, 18.9689),
-    'Vlasenica': (44.1822, 18.9528),
-    'Milići': (44.1719, 19.0989),
-    'Srebrenica': (44.1039, 19.2978),
-    'Bratunac': (44.1844, 19.3308),
-    'Ljubovija': (44.1897, 19.3750),
-    'Šekovići': (44.2992, 18.8514),
-    'Lopare': (44.6383, 18.8478),
-    'Ugljevik': (44.6900, 18.9617),
-    'Šamac': (45.0581, 18.4628),
-    'Odžak': (45.0072, 18.3244),
-    'Modriča': (44.9553, 18.2989),
-    'Derventa': (44.9744, 17.9097),
-    'Prnjavor': (44.8694, 17.6608),
-    'Srbac': (45.0964, 17.5275),
-    'Brod': (45.1294, 17.9875),
-    'Kostajnica': (45.2222, 16.5456),
-    'Novi Grad': (45.0533, 16.3758),
-    'Krupa na Uni': (44.8931, 16.2875),
-    'Mrkonjić Grad': (44.4133, 17.0814),
-    'Kneževo': (44.4933, 17.3744),
-    'Čelinac': (44.7253, 17.3208),
-    'Srbobran': (44.5436, 17.8158),
-    'Pećigrad': (45.1967, 15.8817),
-    'Bosanska Dubica': (45.1728, 16.8083),
-    'Bosanski Brod': (45.1294, 17.9875),
-}
+_fold_city_name = fold_city_name
 
 
 def _haversine_km(lat1, lng1, lat2, lng2):
@@ -156,11 +66,16 @@ def home(request):
         review_count=Count('reviews')
     ).order_by('-avg_rating')[:6]
 
+    from apps.appointments.models import Appointment
+
     context = {
         'categories': categories,
         'featured_businesses': featured,
         'cities': Business.objects.filter(is_active=True)
         .values_list('city', flat=True).distinct().order_by('city'),
+        'stats_businesses': Business.objects.filter(is_active=True).count(),
+        'stats_categories': categories.count(),
+        'stats_appointments': Appointment.objects.count(),
     }
     return render(request, 'home.html', context)
 
@@ -198,7 +113,7 @@ def search(request):
         except (ValueError, TypeError):
             using_location = False
     elif city:
-        businesses = [b for b in businesses if b.city.lower() == city.lower()]
+        businesses = [b for b in businesses if _fold_city_name(b.city) == _fold_city_name(city)]
 
     location_mode = 'gps' if using_location else ('city' if city else 'exact')
 
@@ -302,7 +217,7 @@ def category(request, slug):
         except (ValueError, TypeError):
             using_location = False
     elif city:
-        businesses = [b for b in businesses if b.city.lower() == city.lower()]
+        businesses = [b for b in businesses if _fold_city_name(b.city) == _fold_city_name(city)]
 
     location_mode = 'gps' if using_location else ('city' if city else 'exact')
 
@@ -365,7 +280,7 @@ def register_business(request):
 
         if name and city and phone:
             category = Category.objects.filter(id=category_id).first()
-            coords = CITY_COORDS.get(city, (None, None))
+            coords = _lookup_city_coords(city)
             business = Business.objects.create(
                 owner=request.user,
                 category=category,
@@ -395,6 +310,7 @@ def edit_business(request, slug):
     categories = Category.objects.all().order_by('order')
 
     if request.method == 'POST':
+        old_city = business.city
         business.name = request.POST.get('name', business.name).strip()
         business.description = request.POST.get('description', '')
         business.address = request.POST.get('address', business.address).strip()
@@ -415,8 +331,8 @@ def edit_business(request, slug):
             business.cover_image = request.FILES['cover_image']
 
         if business.name and business.city and business.phone and business.address:
-            if business.latitude is None or business.longitude is None:
-                coords = CITY_COORDS.get(business.city, (None, None))
+            if business.city != old_city or business.latitude is None or business.longitude is None:
+                coords = _lookup_city_coords(business.city)
                 business.latitude, business.longitude = coords[0], coords[1]
             business.save()
             messages.success(request, 'Izmjene su sačuvane.')

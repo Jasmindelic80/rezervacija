@@ -15,7 +15,7 @@ class ViberNotifier:
     def __init__(self):
         self.api_key = settings.INFOBIP_API_KEY
         self.base_url = settings.INFOBIP_BASE_URL  # npr. 'xxxxx.api.infobip.com'
-        self.sender = settings.VIBER_SENDER_NAME  # npr. 'RezervišiBiH'
+        self.sender = settings.VIBER_SENDER_NAME  # npr. 'BookBiH'
 
     def send_text(self, phone: str, message: str) -> dict:
         """Pošalji text poruku putem Vibera"""

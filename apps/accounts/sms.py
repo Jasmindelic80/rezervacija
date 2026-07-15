@@ -13,9 +13,9 @@ def send_otp_sms(phone: str, otp: str, purpose: str = 'register') -> bool:
     ispisuje OTP u konzolu.
     """
     messages_map = {
-        'register': f'RezervišiBiH: Vaš kod za verifikaciju je {otp}. Važi 10 minuta.',
-        'login': f'RezervišiBiH: Kod za prijavu je {otp}. Važi 10 minuta.',
-        'reset': f'RezervišiBiH: Kod za reset lozinke je {otp}. Važi 10 minuta.',
+        'register': f'BookBiH: Vaš kod za verifikaciju je {otp}. Važi 10 minuta.',
+        'login': f'BookBiH: Kod za prijavu je {otp}. Važi 10 minuta.',
+        'reset': f'BookBiH: Kod za reset lozinke je {otp}. Važi 10 minuta.',
     }
     message = messages_map.get(purpose, f'Vaš kod je {otp}')
 
@@ -50,7 +50,7 @@ def send_otp_sms(phone: str, otp: str, purpose: str = 'register') -> bool:
     #         },
     #         json={
     #             "messages": [{
-    #                 "from": "RezervišiBiH",
+    #                 "from": "BookBiH",
     #                 "destinations": [{"to": phone}],
     #                 "text": message,
     #             }]

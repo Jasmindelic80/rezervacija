@@ -138,10 +138,26 @@ def provider_appointment_action(request, pk):
         appointment.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
         messages.success(request, 'Termin je otkazan.')
 
+        try:
+            from apps.notifications.tasks import _send_email
+            _send_email(appointment, 'cancellation')
+        except Exception:
+            pass
+
     elif action == 'note':
         appointment.internal_notes = request.POST.get('internal_notes', '')
         appointment.save(update_fields=['internal_notes', 'updated_at'])
         messages.success(request, 'Napomena sačuvana.')
+
+    elif action == 'block_client':
+        from apps.businesses.models import BlockedClient
+        reason = request.POST.get('reason', '')
+        BlockedClient.objects.get_or_create(
+            business=appointment.business,
+            client=appointment.client,
+            defaults={'reason': reason},
+        )
+        messages.success(request, 'Klijent je blokiran i više neće moći rezervisati termine kod vas.')
 
     return redirect('provider_appointment_detail', pk=pk)
 
@@ -258,6 +274,7 @@ def provider_reschedule_appointment(request, pk):
                 messages.error(request, 'Ovaj termin nije slobodan. Odaberite drugi.')
                 return redirect('provider_reschedule_appointment', pk=pk)
 
+            old_start = appointment.start_datetime
             duration = timedelta(minutes=appointment.service.duration_minutes)
             appointment.start_datetime = timezone.make_aware(start_dt)
             appointment.end_datetime = timezone.make_aware(start_dt) + duration
@@ -267,6 +284,16 @@ def provider_reschedule_appointment(request, pk):
                 request,
                 f'Termin je premješten na {appointment.start_datetime:%d.%m.%Y u %H:%M}.'
             )
+
+            try:
+                from apps.notifications.tasks import _send_email
+                _send_email(appointment, 'reschedule', extra_ctx={
+                    'old_date': old_start.strftime('%d.%m.%Y'),
+                    'old_time': old_start.strftime('%H:%M'),
+                })
+            except Exception:
+                pass
+
             return redirect('provider_appointment_detail', pk=pk)
 
         except Exception as e:
@@ -386,6 +413,55 @@ def provider_blocked_slot_delete(request, pk):
         slot.delete()
         messages.success(request, 'Blokada je obrisana.')
         return redirect('provider_blocked_slots', slug=slug)
+    return redirect('provider_dashboard')
+
+
+@login_required
+def provider_blocked_clients(request, slug):
+    from apps.businesses.models import BlockedClient
+    business = _get_provider_business(request, slug)
+
+    blocked = BlockedClient.objects.filter(business=business).select_related('client')
+
+    if request.method == 'POST':
+        client_id = request.POST.get('client_id')
+        reason = request.POST.get('reason', '')
+        appt = Appointment.objects.filter(business=business, client_id=client_id).select_related('client').first() if client_id else None
+        client = appt.client if appt else None
+
+        if client:
+            BlockedClient.objects.get_or_create(
+                business=business, client=client, defaults={'reason': reason}
+            )
+            messages.success(request, 'Klijent je blokiran.')
+        else:
+            messages.error(request, 'Odaberite klijenta.')
+        return redirect('provider_blocked_clients', slug=slug)
+
+    already_blocked_ids = blocked.values_list('client_id', flat=True)
+    clients = Appointment.objects.filter(business=business).exclude(
+        client_id__in=already_blocked_ids
+    ).values('client_id', 'client__first_name', 'client__username').distinct().order_by('client__first_name')
+
+    ctx = _provider_context(request)
+    ctx.update({
+        'business': business,
+        'active_business': business,
+        'blocked': blocked,
+        'clients': clients,
+    })
+    return render(request, 'provider/blocked_clients.html', ctx)
+
+
+@login_required
+def provider_blocked_client_delete(request, pk):
+    from apps.businesses.models import BlockedClient
+    block = get_object_or_404(BlockedClient, pk=pk, business__owner=request.user)
+    if request.method == 'POST':
+        slug = block.business.slug
+        block.delete()
+        messages.success(request, 'Klijent je odblokiran.')
+        return redirect('provider_blocked_clients', slug=slug)
     return redirect('provider_dashboard')
 
 

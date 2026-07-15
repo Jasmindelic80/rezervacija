@@ -128,7 +128,7 @@ class NotificationDispatcher:
 
         templates = {
             'confirmation': (
-                f"✅ *RezervišiBiH* — Potvrda termina\n\n"
+                f"✅ *BookBiH* — Potvrda termina\n\n"
                 f"Zdravo {name}!\n\n"
                 f"Vaš termin je potvrđen:\n"
                 f"📍 *{business}*\n"
@@ -165,7 +165,7 @@ class NotificationDispatcher:
                 f"Rezervišite novi termin: rezervisi.ba"
             ),
         }
-        return templates.get(message_type, f"Obavijest od RezervišiBiH")
+        return templates.get(message_type, f"Obavijest od BookBiH")
 
     def _get_wa_template(self, message_type: str, ctx: dict):
         """

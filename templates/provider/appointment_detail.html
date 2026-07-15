@@ -112,7 +112,7 @@
     {% endif %}
 
     <!-- Interne napomene -->
-    <div class="card p-4">
+    <div class="card p-4 mb-3">
       <h6 class="fw-700 mb-3">Interne napomene</h6>
       <form method="post" action="{% url 'provider_appointment_action' appointment.pk %}">
         {% csrf_token %}
@@ -121,6 +121,23 @@
                   placeholder="Vidljivo samo vama...">{{ appointment.internal_notes }}</textarea>
         <button type="submit" class="btn btn-sm fw-600" style="background:var(--primary);color:white;border-radius:8px;">
           Sačuvaj napomenu
+        </button>
+      </form>
+    </div>
+
+    <!-- Blokiraj klijenta -->
+    <div class="card p-4">
+      <h6 class="fw-700 mb-2">Sumnjivo ponašanje?</h6>
+      <p class="text-muted small mb-3">Ako sumnjate da ovaj klijent namjerno zauzima termine, možete ga blokirati — više neće moći rezervisati kod vas.</p>
+      <form method="post" action="{% url 'provider_appointment_action' appointment.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="block_client">
+        <div class="mb-2">
+          <input type="text" name="reason" class="form-control form-control-sm" placeholder="Razlog blokiranja (opciono)">
+        </div>
+        <button type="submit" class="btn btn-outline-danger w-100 fw-700 rounded-3"
+                onclick="return confirm('Blokirati ovog klijenta kod ovog biznisa?')">
+          ⛔ Blokiraj klijenta
         </button>
       </form>
     </div>

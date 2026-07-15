@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ business.name }} — RezervišiBiH{% endblock %}
+{% block title %}{{ business.name }} — BookBiH{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -138,7 +138,14 @@
         <span class="verified-badge">✓ Verificiran</span>
       {% endif %}
     </h1>
-    <p>{{ business.category.name }} · 📍 {{ business.address }}, {{ business.city }}</p>
+    <p>{{ business.category.name }} · 📍
+      {% with map_query=business.address|add:", "|add:business.city %}
+      <a href="https://www.google.com/maps/dir/?api=1&destination={{ map_query|urlencode }}"
+         target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">
+        {{ business.address }}, {{ business.city }}
+      </a>
+      {% endwith %}
+    </p>
   </div>
 </div>
 

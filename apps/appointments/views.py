@@ -18,6 +18,13 @@ def book_appointment(request, business_slug):
     services = business.services.filter(is_active=True)
     staff_list = business.staff.filter(is_active=True)
 
+    if business.blocked_clients.filter(client=request.user).exists():
+        messages.error(
+            request,
+            'Nažalost, ovaj biznis vam trenutno ne dozvoljava rezervacije.'
+        )
+        return redirect('business_detail', slug=business_slug)
+
     if request.method == 'POST':
         service_id = request.POST.get('service_id')
         staff_id = request.POST.get('staff_id')
@@ -159,7 +166,7 @@ def appointment_ics(request, pk):
     ics = (
         'BEGIN:VCALENDAR\r\n'
         'VERSION:2.0\r\n'
-        'PRODID:-//RezervišiBiH//HR\r\n'
+        'PRODID:-//BookBiH//HR\r\n'
         'CALSCALE:GREGORIAN\r\n'
         'METHOD:PUBLISH\r\n'
         'BEGIN:VEVENT\r\n'
@@ -209,6 +216,7 @@ def reschedule_appointment(request, pk):
                 messages.error(request, 'Ovaj termin više nije slobodan. Odaberite drugi.')
                 return redirect('reschedule', pk=pk)
 
+            old_start = appointment.start_datetime
             duration = timedelta(minutes=appointment.service.duration_minutes)
             appointment.start_datetime = timezone.make_aware(start_dt)
             appointment.end_datetime = timezone.make_aware(start_dt) + duration
@@ -218,6 +226,16 @@ def reschedule_appointment(request, pk):
                 request,
                 f'Termin je uspješno premješten na {appointment.start_datetime:%d.%m.%Y u %H:%M}.'
             )
+
+            try:
+                from apps.notifications.tasks import _send_email
+                _send_email(appointment, 'reschedule', extra_ctx={
+                    'old_date': old_start.strftime('%d.%m.%Y'),
+                    'old_time': old_start.strftime('%H:%M'),
+                })
+            except Exception:
+                pass
+
             return redirect('my_appointments')
 
         except Exception as e:

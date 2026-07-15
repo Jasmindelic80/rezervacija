@@ -1,0 +1,75 @@
+{% extends 'provider/base.html' %}
+{% block title %}Blokirani klijenti — {{ business.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="fw-800 fs-3 mb-1">Blokirani klijenti</h1>
+  <p class="text-muted mb-0">{{ business.name }} — spriječi rezervacije klijentima koji zloupotrebljavaju termine</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card p-4">
+      <h6 class="fw-700 mb-3">Blokiraj klijenta</h6>
+      {% if clients %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label fw-600 small">Klijent *</label>
+          <select name="client_id" class="form-select form-select-sm" required>
+            <option value="">— Odaberi klijenta —</option>
+            {% for c in clients %}
+            <option value="{{ c.client_id }}">{{ c.client__first_name|default:c.client__username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-600 small">Razlog</label>
+          <input type="text" name="reason" class="form-control form-control-sm"
+                 placeholder="npr. Ponovljeno neopravdano izostajanje...">
+        </div>
+        <button type="submit" class="btn w-100 fw-700 btn-outline-danger rounded-3"
+                onclick="return confirm('Blokirati ovog klijenta?')">
+          Blokiraj klijenta
+        </button>
+      </form>
+      {% else %}
+      <p class="text-muted small mb-0">Nema dostupnih klijenata za blokiranje (klijent mora imati prethodnu rezervaciju kod vas).</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header fw-700">Trenutno blokirani</div>
+      {% if blocked %}
+      <div class="list-group list-group-flush">
+        {% for b in blocked %}
+        <div class="list-group-item px-4 py-3 d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-700">{{ b.client.first_name|default:b.client.username }}</div>
+            <div class="text-muted small">
+              Blokiran {{ b.created_at|date:"d.m.Y" }}
+              {% if b.reason %} · {{ b.reason }}{% endif %}
+            </div>
+          </div>
+          <form method="post" action="{% url 'provider_blocked_client_delete' b.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-3 py-0"
+                    onclick="return confirm('Odblokirati ovog klijenta?')">
+              Odblokiraj
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-4 text-muted">
+        <div style="font-size:2rem;">⛔</div>
+        <p class="mb-0 small">Nema blokiranih klijenata.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

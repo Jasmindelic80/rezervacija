@@ -11,7 +11,7 @@ from .dispatcher import dispatcher
 
 logger = logging.getLogger(__name__)
 
-SITE_URL = getattr(settings, 'SITE_URL', 'https://rezervisi.ba')
+SITE_URL = getattr(settings, 'SITE_URL', 'https://bookbih.ba')
 
 
 def _google_calendar_url(appt) -> str:
@@ -31,7 +31,7 @@ def _google_calendar_url(appt) -> str:
     return f'https://calendar.google.com/calendar/render?{params}'
 
 
-def _send_email(appt, message_type: str):
+def _send_email(appt, message_type: str, extra_ctx: dict = None):
     if not appt.client.email:
         return
 
@@ -46,6 +46,7 @@ def _send_email(appt, message_type: str):
         'reminder_24h': f'⏰ Podsjetnik: sutra u {appt.start_datetime:%H:%M} — {appt.business.name}',
         'reminder_1h':  f'🔔 Vaš termin za sat vremena — {appt.business.name}',
         'cancellation': f'❌ Termin otkazan — {appt.business.name}',
+        'reschedule':   f'🔄 Termin premješten — {appt.business.name}',
     }
 
     ctx = {
@@ -60,6 +61,8 @@ def _send_email(appt, message_type: str):
         'ics_url':       ics_url,
         'google_cal_url': _google_calendar_url(appt),
     }
+    if extra_ctx:
+        ctx.update(extra_ctx)
 
     if message_type == 'confirmation':
         html_body = render_to_string('emails/appointment_confirmation.html', ctx)
@@ -72,7 +75,7 @@ def _send_email(appt, message_type: str):
             f"  Vrijeme: {ctx['time']}\n\n"
             f"Dodajte u kalendar: {ics_url}\n"
             f"Otkazivanje: {cancel_url}\n\n"
-            f"Tim RezervišiBiH"
+            f"Tim BookBiH"
         )
     elif message_type in ('reminder_24h', 'reminder_1h'):
         period = 'sutra' if message_type == 'reminder_24h' else 'za sat vremena'
@@ -82,20 +85,33 @@ def _send_email(appt, message_type: str):
             f"  Usluga:  {service_name}\n"
             f"  Datum:   {ctx['date']}\n"
             f"  Vrijeme: {ctx['time']}\n\n"
-            f"Tim RezervišiBiH"
+            f"Tim BookBiH"
+        )
+        html_body = None
+    elif message_type == 'reschedule':
+        old_date = ctx.get('old_date', '')
+        old_time = ctx.get('old_time', '')
+        text_body = (
+            f"Zdravo {ctx['client_name']},\n\n"
+            f"Vaš termin u {ctx['business_name']} je premješten:\n"
+            f"  Prije:  {old_date} u {old_time}\n"
+            f"  Sada:   {ctx['date']} u {ctx['time']}\n\n"
+            f"Dodajte u kalendar: {ics_url}\n"
+            f"Otkazivanje: {cancel_url}\n\n"
+            f"Tim BookBiH"
         )
         html_body = None
     else:
         text_body = (
             f"Vaš termin u {ctx['business_name']} "
             f"({ctx['date']} u {ctx['time']}) je otkazan.\n\n"
-            f"Tim RezervišiBiH"
+            f"Tim BookBiH"
         )
         html_body = None
 
     try:
         email = EmailMultiAlternatives(
-            subject=subjects.get(message_type, 'Obavijest — RezervišiBiH'),
+            subject=subjects.get(message_type, 'Obavijest — BookBiH'),
             body=text_body,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[appt.client.email],
@@ -189,7 +205,7 @@ def send_cancellation_notification(self, appointment_id: str, cancelled_by: str 
 def _build_context(appointment) -> dict:
     """Izgradi context dict iz Appointment objekta"""
     from django.urls import reverse
-    cancel_url = f"http://65.109.6.156{reverse('cancel', kwargs={'pk': appointment.pk})}"
+    cancel_url = f"{SITE_URL}{reverse('cancel', kwargs={'pk': appointment.pk})}"
     return {
         'client_name': appointment.client.first_name or appointment.client.username,
         'business_name': appointment.business.name,

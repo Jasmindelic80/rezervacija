@@ -92,7 +92,7 @@ def payment_bank_initiate(request):
         'bank_name': getattr(settings, 'BANK_NAME', 'Raiffeisen Bank d.d. BiH'),
         'bank_iban': getattr(settings, 'BANK_IBAN', 'BA391610000000123456'),
         'bank_swift': getattr(settings, 'BANK_SWIFT', 'RZBABA2S'),
-        'bank_account_owner': getattr(settings, 'BANK_ACCOUNT_OWNER', 'RezervišiBiH d.o.o.'),
+        'bank_account_owner': getattr(settings, 'BANK_ACCOUNT_OWNER', 'BookBiH d.o.o.'),
     })
 
 

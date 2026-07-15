@@ -136,6 +136,10 @@
      class="{% if request.resolver_match.url_name == 'provider_blocked_slots' %}active{% endif %}">
     <span class="icon">🚫</span> Blokade
   </a>
+  <a href="{% url 'provider_blocked_clients' biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'provider_blocked_clients' %}active{% endif %}">
+    <span class="icon">⛔</span> Blokirani klijenti
+  </a>
   <a href="{% url 'edit_business' biz.slug %}"
      class="{% if request.resolver_match.url_name == 'edit_business' %}active{% endif %}">
     <span class="icon">✏️</span> Uredi biznis

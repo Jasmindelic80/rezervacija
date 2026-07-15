@@ -14,7 +14,6 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = False
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
-STATIC_ROOT = '/var/www/mojaapp/static/'
 
 # ── Aplikacije ────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -163,6 +162,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+SITE_URL = os.getenv('SITE_URL', 'https://bookbih.ba')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ── Crispy Forms ──────────────────────────────────────────────
@@ -192,7 +193,7 @@ CELERY_TIMEZONE = 'Europe/Sarajevo'
 # ── SMS / Messaging provideri ─────────────────────────────────
 INFOBIP_API_KEY   = env('INFOBIP_API_KEY', default='')
 INFOBIP_BASE_URL  = env('INFOBIP_BASE_URL', default='')
-VIBER_SENDER_NAME = env('VIBER_SENDER_NAME', default='RezervišiBiH')
+VIBER_SENDER_NAME = env('VIBER_SENDER_NAME', default='BookBiH')
 
 WHATSAPP_TOKEN    = env('WHATSAPP_TOKEN', default='')
 WHATSAPP_PHONE_ID = env('WHATSAPP_PHONE_ID', default='')
@@ -212,7 +213,7 @@ EMAIL_USE_TLS       = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_USE_SSL       = env.bool('EMAIL_USE_SSL', default=False)
 EMAIL_HOST_USER     = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL  = env('DEFAULT_FROM_EMAIL', default='RezervišiBiH <terminbih@gmail.com>')
+DEFAULT_FROM_EMAIL  = env('DEFAULT_FROM_EMAIL', default='BookBiH <terminbih@gmail.com>')
 
 # ── Pretplate / Subscription ──────────────────────────────────
 SUBSCRIPTION_MONTHLY_PRICE = env.float('SUBSCRIPTION_MONTHLY_PRICE', default=10.00)
@@ -226,7 +227,7 @@ PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
 BANK_NAME = env('BANK_NAME', default='Raiffeisen Bank d.d. BiH')
 BANK_IBAN = env('BANK_IBAN', default='BA391610000000123456')
 BANK_SWIFT = env('BANK_SWIFT', default='RZBABA2S')
-BANK_ACCOUNT_OWNER = env('BANK_ACCOUNT_OWNER', default='RezervišiBiH d.o.o.')
+BANK_ACCOUNT_OWNER = env('BANK_ACCOUNT_OWNER', default='BookBiH d.o.o.')
 
 # ── Logging (samo konzola, bez file handlera) ─────────────────
 LOGGING = {

@@ -25,12 +25,12 @@ def create_order(amount_bam: str, return_url: str, cancel_url: str) -> dict:
             'intent': 'CAPTURE',
             'purchase_units': [{
                 'amount': {'currency_code': 'BAM', 'value': str(amount_bam)},
-                'description': 'RezervišiBiH — pretplata',
+                'description': 'BookBiH — pretplata',
             }],
             'application_context': {
                 'return_url': return_url,
                 'cancel_url': cancel_url,
-                'brand_name': 'RezervišiBiH',
+                'brand_name': 'BookBiH',
                 'landing_page': 'BILLING',
                 'user_action': 'PAY_NOW',
             },
