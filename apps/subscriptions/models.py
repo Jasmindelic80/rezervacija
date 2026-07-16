@@ -5,8 +5,18 @@ from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 
 
+TWOPLACES = Decimal('0.01')
+
+
 def _default_price():
-    return Decimal(str(getattr(settings, 'SUBSCRIPTION_MONTHLY_PRICE', '10.00')))
+    return Decimal(str(getattr(settings, 'SUBSCRIPTION_MONTHLY_PRICE', '19.00'))).quantize(TWOPLACES)
+
+
+def plan_amount(monthly_price, months):
+    """Cijena za odabrani broj mjeseci — 12 mjeseci ide po fiksnoj godišnjoj cijeni (popust)."""
+    if months == 12:
+        return Decimal(str(getattr(settings, 'SUBSCRIPTION_ANNUAL_PRICE', '200.00'))).quantize(TWOPLACES)
+    return (monthly_price * months).quantize(TWOPLACES)
 
 
 class Subscription(models.Model):
@@ -33,6 +43,7 @@ class Subscription(models.Model):
     monthly_price = models.DecimalField(
         max_digits=8, decimal_places=2, default=_default_price
     )
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,6 +53,19 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.business.name} — {self.get_status_display()}"
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            try:
+                old = Subscription.objects.only('trial_end', 'active_until').get(pk=self.pk)
+                if old.trial_end != self.trial_end or old.active_until != self.active_until:
+                    self.reminder_sent_at = None
+                    update_fields = kwargs.get('update_fields')
+                    if update_fields is not None:
+                        kwargs['update_fields'] = set(update_fields) | {'reminder_sent_at'}
+            except Subscription.DoesNotExist:
+                pass
+        super().save(*args, **kwargs)
 
     @property
     def is_active(self):

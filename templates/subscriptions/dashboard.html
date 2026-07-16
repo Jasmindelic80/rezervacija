@@ -21,7 +21,7 @@
             Probni period ističe {{ sub.trial_end|date:"d.m.Y" }}.
           </p>
         </div>
-        <a href="{% url 'payment_choose' %}" class="btn btn-primary ms-auto text-nowrap">
+        <a href="{% url 'payment_choose' slug=business.slug %}" class="btn btn-primary ms-auto text-nowrap">
           Aktiviraj pretplatu
         </a>
       </div>
@@ -37,7 +37,7 @@
             (još {{ sub.days_remaining }} dana).
           </p>
         </div>
-        <a href="{% url 'payment_choose' %}" class="btn btn-outline-success ms-auto text-nowrap">
+        <a href="{% url 'payment_choose' slug=business.slug %}" class="btn btn-outline-success ms-auto text-nowrap">
           Produži pretplatu
         </a>
       </div>
@@ -51,7 +51,7 @@
         <h5 class="mb-1 fw-bold text-danger">Pretplata je istekla</h5>
         <p class="mb-0 text-muted">Aktivirajte pretplatu kako biste nastavili primati rezervacije.</p>
       </div>
-      <a href="{% url 'payment_choose' %}" class="btn btn-danger ms-auto text-nowrap">
+      <a href="{% url 'payment_choose' slug=business.slug %}" class="btn btn-danger ms-auto text-nowrap">
         Aktiviraj sada
       </a>
     </div>

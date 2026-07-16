@@ -4,6 +4,9 @@ set -e
 echo "Pokretanje migracija..."
 python manage.py migrate
 
+echo "Kompajliranje prijevoda..."
+python manage.py compilemessages
+
 echo "Kreiranje admin korisnika..."
 python manage.py create_default_admin
 

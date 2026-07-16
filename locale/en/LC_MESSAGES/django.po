@@ -118,3 +118,60 @@ msgstr "Login"
 
 msgid "Registracija"
 msgstr "Register"
+
+msgid "Frizeri i barberi"
+msgstr "Hairdressers & Barbers"
+
+msgid "Kozmetički saloni"
+msgstr "Beauty Salons"
+
+msgid "Masaže i wellness"
+msgstr "Massage & Wellness"
+
+msgid "Stomatološke ordinacije"
+msgstr "Dental Practices"
+
+msgid "Privatne ordinacije"
+msgstr "Private Medical Practices"
+
+msgid "Veterinari"
+msgstr "Veterinarians"
+
+msgid "Privatni instruktori"
+msgstr "Private Tutors"
+
+msgid "Personal treneri"
+msgstr "Personal Trainers"
+
+msgid "Majstori i servisi"
+msgstr "Handymen & Repair Services"
+
+msgid "Fotografija i video"
+msgstr "Photography & Video"
+
+msgid "Notari i advokati"
+msgstr "Notaries & Lawyers"
+
+msgid "Računovođe i revizori"
+msgstr "Accountants & Auditors"
+
+msgid "Prijevod i lektor"
+msgstr "Translation & Proofreading"
+
+msgid "IT i web usluge"
+msgstr "IT & Web Services"
+
+msgid "Čišćenje i održavanje"
+msgstr "Cleaning & Maintenance"
+
+msgid "Krojači i kožar"
+msgstr "Tailors & Cobblers"
+
+msgid "Optičari"
+msgstr "Opticians"
+
+msgid "Tatoo i piercing"
+msgstr "Tattoo & Piercing"
+
+msgid "Frizerski saloni za pse"
+msgstr "Pet Grooming Salons"

@@ -34,6 +34,11 @@ class Business(models.Model):
     )
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
+    registration_number = models.CharField(
+        max_length=30, unique=True, null=True, blank=True,
+        verbose_name='JIB / ID broj firme',
+        help_text='Jedinstveni identifikacioni broj firme registrovane u BiH'
+    )
     description = models.TextField(blank=True)
     address = models.CharField(max_length=300)
     city = models.CharField(max_length=100)

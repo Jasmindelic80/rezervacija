@@ -216,7 +216,8 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL  = env('DEFAULT_FROM_EMAIL', default='BookBiH <terminbih@gmail.com>')
 
 # ── Pretplate / Subscription ──────────────────────────────────
-SUBSCRIPTION_MONTHLY_PRICE = env.float('SUBSCRIPTION_MONTHLY_PRICE', default=10.00)
+SUBSCRIPTION_MONTHLY_PRICE = env.float('SUBSCRIPTION_MONTHLY_PRICE', default=19.00)
+SUBSCRIPTION_ANNUAL_PRICE = env.float('SUBSCRIPTION_ANNUAL_PRICE', default=200.00)
 
 # PayPal
 PAYPAL_MODE = env('PAYPAL_MODE', default='sandbox')  # 'sandbox' | 'live'

@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container py-5" style="max-width:640px">
-  <a href="{% url 'subscription_dashboard' %}" class="btn btn-link text-muted mb-3 ps-0">
+  <a href="{% url 'subscription_dashboard' slug=business.slug %}" class="btn btn-link text-muted mb-3 ps-0">
     &larr; Nazad
   </a>
   <h2 class="fw-bold mb-1">Aktiviraj pretplatu</h2>
@@ -53,7 +53,7 @@
             <h6 class="fw-bold mb-0">PayPal</h6>
             <p class="text-muted mb-0 small">Instant uplata. Kreditna/debitna kartica ili PayPal saldo.</p>
           </div>
-          <form method="post" action="{% url 'payment_paypal_create' %}">
+          <form method="post" action="{% url 'payment_paypal_create' slug=business.slug %}">
             {% csrf_token %}
             <input type="hidden" name="months" value="{{ months }}">
             <button type="submit" class="btn btn-warning fw-bold text-nowrap">
@@ -73,7 +73,7 @@
             <h6 class="fw-bold mb-0">Bankovna uplata</h6>
             <p class="text-muted mb-0 small">Uplata na račun. Aktivacija u roku od 24h po potvrdi.</p>
           </div>
-          <form method="post" action="{% url 'payment_bank_initiate' %}">
+          <form method="post" action="{% url 'payment_bank_initiate' slug=business.slug %}">
             {% csrf_token %}
             <input type="hidden" name="months" value="{{ months }}">
             <button type="submit" class="btn btn-outline-primary fw-bold text-nowrap">

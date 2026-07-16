@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load business_extras %}
 {% block title %}{{ business.name }} — BookBiH{% endblock %}
 
 {% block extra_css %}
@@ -138,7 +139,7 @@
         <span class="verified-badge">✓ Verificiran</span>
       {% endif %}
     </h1>
-    <p>{{ business.category.name }} · 📍
+    <p>{{ business.category.name|translate }} · 📍
       {% with map_query=business.address|add:", "|add:business.city %}
       <a href="https://www.google.com/maps/dir/?api=1&destination={{ map_query|urlencode }}"
          target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">

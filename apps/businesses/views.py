@@ -277,31 +277,43 @@ def register_business(request):
         city = request.POST.get('city', '')
         phone = request.POST.get('phone', '')
         address = request.POST.get('address', '')
+        registration_number = request.POST.get('registration_number', '').strip()
 
-        if name and city and phone:
-            category = Category.objects.filter(id=category_id).first()
-            coords = _lookup_city_coords(city)
-            business = Business.objects.create(
-                owner=request.user,
-                category=category,
-                name=name,
-                city=city,
-                phone=phone,
-                address=address,
-                latitude=coords[0],
-                longitude=coords[1],
-            )
-            # Postavi korisnika kao providera
-            request.user.role = 'provider'
-            request.user.save()
+        if name and city and phone and registration_number:
+            if Business.objects.filter(registration_number=registration_number).exists():
+                messages.error(
+                    request,
+                    'Firma sa ovim JIB/ID brojem je već registrovana na BookBiH. '
+                    'Besplatni probni period se može iskoristiti samo jednom po firmi.'
+                )
+            else:
+                category = Category.objects.filter(id=category_id).first()
+                coords = _lookup_city_coords(city)
+                business = Business.objects.create(
+                    owner=request.user,
+                    category=category,
+                    name=name,
+                    city=city,
+                    phone=phone,
+                    address=address,
+                    registration_number=registration_number,
+                    latitude=coords[0],
+                    longitude=coords[1],
+                )
+                # Postavi korisnika kao providera
+                request.user.role = 'provider'
+                request.user.save()
 
-            messages.success(request, f'Biznis "{business.name}" je uspješno registrovan!')
-            return redirect('provider_dashboard')
+                messages.success(request, f'Biznis "{business.name}" je uspješno registrovan!')
+                return redirect('provider_dashboard')
         else:
             messages.error(request, 'Molimo popunite sva obavezna polja.')
 
     categories = Category.objects.all().order_by('order')
-    return render(request, 'businesses/register.html', {'categories': categories})
+    has_business = request.user.businesses.exists()
+    return render(request, 'businesses/register.html', {
+        'categories': categories, 'has_business': has_business,
+    })
 
 
 @login_required

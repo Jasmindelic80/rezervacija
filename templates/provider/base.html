@@ -40,7 +40,9 @@
       overflow-y: auto; z-index: 90; transition: transform .25s;
       padding: 1rem 0;
     }
-    .p-sidebar.hidden { transform: translateX(-100%); }
+    @media (min-width: 769px) {
+      .p-sidebar.hidden { transform: translateX(-100%); }
+    }
 
     .nav-section { padding: .25rem 1rem; font-size: .7rem; font-weight: 700;
       color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-top: .75rem; }
@@ -155,12 +157,15 @@
   <a href="{% url 'business_detail' biz.slug %}" target="_blank">
     <span class="icon">🌐</span> Javna stranica
   </a>
+  <a href="{% url 'subscription_dashboard' slug=biz.slug %}"
+     class="{% if request.resolver_match.url_name == 'subscription_dashboard' and request.resolver_match.kwargs.slug == biz.slug %}active{% endif %}">
+    <span class="icon">💳</span> Pretplata
+  </a>
   {% endfor %}
   {% endif %}
 
   <div class="nav-section">Račun</div>
   <a href="{% url 'register_business' %}"><span class="icon">➕</span> Novi biznis</a>
-  <a href="{% url 'subscription_expired' %}"><span class="icon">💳</span> Pretplata</a>
   <a href="{% url 'profile_settings' %}"><span class="icon">⚙️</span> Postavke</a>
 </nav>
 
@@ -182,6 +187,7 @@
   const main = document.getElementById('mainContent');
   document.getElementById('sidebarToggle').addEventListener('click', () => {
     sidebar.classList.toggle('hidden');
+    sidebar.classList.toggle('open');
     main.classList.toggle('full');
   });
   // Auto-hide messages

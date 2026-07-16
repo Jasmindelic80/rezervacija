@@ -106,28 +106,6 @@
         {% endif %}
       </div>
 
-      <!-- Telefon (opciono) -->
-      <div class="mb-4">
-        <label class="form-label">
-          Broj telefona <span class="optional-label">(opciono)</span>
-        </label>
-        <div class="phone-wrap">
-          <div class="phone-prefix">
-            <select name="country_code">
-              {% for code, label in country_codes %}
-                <option value="{{ code }}" {% if code == '+387' %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <input type="tel" name="phone" class="form-control"
-                 placeholder="61 123 456" inputmode="tel" autocomplete="tel"
-                 value="{{ request.POST.phone|default:'' }}">
-        </div>
-        {% if form.phone.errors %}
-          <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
-        {% endif %}
-      </div>
-
       <button type="submit" class="btn-auth">Pošalji kod na email →</button>
     </form>
 

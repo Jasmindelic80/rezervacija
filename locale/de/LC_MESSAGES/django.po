@@ -118,3 +118,60 @@ msgstr "Anmelden"
 
 msgid "Registracija"
 msgstr "Registrieren"
+
+msgid "Frizeri i barberi"
+msgstr "Friseure & Barbiere"
+
+msgid "Kozmetički saloni"
+msgstr "Kosmetiksalons"
+
+msgid "Masaže i wellness"
+msgstr "Massage & Wellness"
+
+msgid "Stomatološke ordinacije"
+msgstr "Zahnarztpraxen"
+
+msgid "Privatne ordinacije"
+msgstr "Private Arztpraxen"
+
+msgid "Veterinari"
+msgstr "Tierärzte"
+
+msgid "Privatni instruktori"
+msgstr "Privatlehrer"
+
+msgid "Personal treneri"
+msgstr "Personal Trainer"
+
+msgid "Majstori i servisi"
+msgstr "Handwerker & Reparaturdienste"
+
+msgid "Fotografija i video"
+msgstr "Fotografie & Video"
+
+msgid "Notari i advokati"
+msgstr "Notare & Anwälte"
+
+msgid "Računovođe i revizori"
+msgstr "Buchhalter & Wirtschaftsprüfer"
+
+msgid "Prijevod i lektor"
+msgstr "Übersetzung & Lektorat"
+
+msgid "IT i web usluge"
+msgstr "IT & Web-Dienstleistungen"
+
+msgid "Čišćenje i održavanje"
+msgstr "Reinigung & Wartung"
+
+msgid "Krojači i kožar"
+msgstr "Schneider & Schuster"
+
+msgid "Optičari"
+msgstr "Optiker"
+
+msgid "Tatoo i piercing"
+msgstr "Tattoo & Piercing"
+
+msgid "Frizerski saloni za pse"
+msgstr "Hundefriseursalons"

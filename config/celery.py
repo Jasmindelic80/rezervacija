@@ -16,6 +16,10 @@ app.conf.beat_schedule = {
         'task': 'apps.notifications.tasks.send_appointment_reminders',
         'schedule': crontab(minute=0),  # Svaki sat u :00
     },
+    'send-subscription-reminders-daily': {
+        'task': 'apps.subscriptions.tasks.send_subscription_reminders',
+        'schedule': crontab(hour=9, minute=0),  # Svaki dan u 09:00
+    },
 }
 
 

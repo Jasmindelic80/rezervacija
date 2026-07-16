@@ -1,4 +1,5 @@
 {% extends 'provider/base.html' %}
+{% load business_extras %}
 {% block title %}Uredi biznis — {{ business.name }}{% endblock %}
 
 {% block content %}
@@ -27,7 +28,7 @@
               <option value="">— Bez kategorije —</option>
               {% for cat in categories %}
               <option value="{{ cat.id }}" {% if business.category_id == cat.id %}selected{% endif %}>
-                {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name }}
+                {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name|translate }}
               </option>
               {% endfor %}
             </select>

@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load business_extras %}
 {% block title %}
-  {% if category %}{{ category.name }}{% else %}Pretraga{% endif %}
+  {% if category %}{{ category.name|translate }}{% else %}Pretraga{% endif %}
   {% if selected_city %}— {{ selected_city }}{% endif %}
 {% endblock %}
 
@@ -97,7 +98,7 @@
       <option value="">Sve kategorije</option>
       {% for cat in categories %}
         <option value="{{ cat.slug }}" {% if cat.slug == selected_category %}selected{% endif %}>
-          {{ cat.icon }} {{ cat.name }}
+          {{ cat.icon }} {{ cat.name|translate }}
         </option>
       {% endfor %}
     </select>
@@ -136,7 +137,7 @@
   <!-- Heading -->
   <div class="d-flex align-items-baseline gap-2 mb-3">
     <h2 class="fw-bold mb-0">
-      {% if category %}{{ category.icon }} {{ category.name }}
+      {% if category %}{{ category.icon }} {{ category.name|translate }}
       {% else %}Rezultati pretrage{% endif %}
       {% if location_mode == 'city' %}
         <span class="text-muted fs-5 fw-normal"> — {{ selected_city }}, unutar {{ radius }} km</span>
@@ -160,7 +161,7 @@
         </div>
         <div class="body">
           <div class="biz-name">{{ biz.name }}</div>
-          <div class="biz-meta">{{ biz.category.name }}</div>
+          <div class="biz-meta">{{ biz.category.name|translate }}</div>
           <div class="biz-meta">📍 {{ biz.city }}</div>
           {% if using_location and biz.distance_km is not None %}
             <div class="dist-badge">🗺 {{ biz.distance_km }} km</div>

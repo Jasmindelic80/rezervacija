@@ -21,7 +21,6 @@ def register_step1_phone(request):
 
     if request.method == 'POST' and form.is_valid():
         email = form.cleaned_data['email']
-        phone = form.cleaned_data.get('phone')
         role = form.cleaned_data['role']
 
         if User.objects.filter(email=email).exists():
@@ -39,7 +38,6 @@ def register_step1_phone(request):
             })
 
         request.session['reg_email'] = email
-        request.session['reg_phone'] = phone
         request.session['reg_role'] = role
 
         messages.success(request, f'Kod je poslan na {email}')
@@ -168,7 +166,6 @@ def register_step3_complete(request):
     email = request.session.get('reg_email')
     verified = request.session.get('reg_phone_verified')
     role = request.session.get('reg_role', 'client')
-    phone = request.session.get('reg_phone')
 
     if not email or not verified:
         return redirect('register')
@@ -177,6 +174,7 @@ def register_step3_complete(request):
 
     if request.method == 'POST' and form.is_valid():
         cd = form.cleaned_data
+        phone = cd.get('phone')
 
         base_username = email.split('@')[0]
         username = base_username
@@ -196,7 +194,7 @@ def register_step3_complete(request):
             role=role,
         )
 
-        for key in ['reg_email', 'reg_phone', 'reg_role', 'reg_phone_verified']:
+        for key in ['reg_email', 'reg_role', 'reg_phone_verified']:
             request.session.pop(key, None)
 
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -206,7 +204,9 @@ def register_step3_complete(request):
             return redirect('register_business')
         return redirect('home')
 
-    return render(request, 'accounts/register_complete.html', {'form': form, 'email': email})
+    return render(request, 'accounts/register_complete.html', {
+        'form': form, 'email': email, 'country_codes': COUNTRY_CODES,
+    })
 
 
 @require_http_methods(['POST'])

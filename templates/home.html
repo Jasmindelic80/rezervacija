@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load business_extras %}
 
 {% block title %}BookBiH — {% trans "Rezervirajte termin online" %}{% endblock %}
 
@@ -131,7 +132,7 @@
           <select name="kategorija">
             <option value="">{% trans "Sve kategorije" %}</option>
             {% for cat in categories %}
-              <option value="{{ cat.slug }}">{{ cat.icon }} {{ cat.name }}</option>
+              <option value="{{ cat.slug }}">{{ cat.icon }} {{ cat.name|translate }}</option>
             {% endfor %}
           </select>
           <div style="position:relative;flex:1;min-width:0">
@@ -188,7 +189,7 @@
     {% for cat in categories %}
     <a href="{% url 'category' cat.slug %}" class="cat-card">
       <span class="icon">{{ cat.icon }}</span>
-      <div class="name">{{ cat.name }}</div>
+      <div class="name">{{ cat.name|translate }}</div>
       <div class="count">{{ cat.business_count }} {% trans "biznisa" %}</div>
     </a>
     {% endfor %}
@@ -217,7 +218,7 @@
         </div>
         <div class="body">
           <div class="biz-name">{{ biz.name }}</div>
-          <div class="biz-cat">{{ biz.category.name }}</div>
+          <div class="biz-cat">{{ biz.category.name|translate }}</div>
           <div class="biz-city">📍 {{ biz.city }}</div>
           {% if biz.avg_rating %}
           <div class="biz-rating">

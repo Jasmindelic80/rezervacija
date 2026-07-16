@@ -45,7 +45,7 @@ COUNTRY_CODES = [
 
 
 class EmailPhoneForm(forms.Form):
-    """Korak 1: Email (obavezno) + telefon (opciono)"""
+    """Korak 1: Email (obavezno)"""
     email = forms.EmailField(
         label='Email adresa',
         widget=forms.EmailInput(attrs={
@@ -54,33 +54,11 @@ class EmailPhoneForm(forms.Form):
             'autocomplete': 'email',
         })
     )
-    phone = forms.CharField(
-        max_length=20,
-        required=False,
-        label='Broj telefona',
-        widget=forms.TextInput(attrs={
-            'placeholder': '61 123 456',
-            'class': 'form-control form-control-lg',
-            'inputmode': 'tel',
-            'autocomplete': 'tel',
-        })
-    )
-    country_code = forms.CharField(max_length=5, required=False, initial='+387')
     role = forms.ChoiceField(
         choices=[('client', 'Tražim usluge'), ('provider', 'Nudim usluge')],
         widget=forms.RadioSelect,
         initial='client',
     )
-
-    def clean_phone(self):
-        phone = self.cleaned_data.get('phone', '').strip()
-        if not phone:
-            return None
-        country_code = self.data.get('country_code', '+387') or '+387'
-        normalized = normalize_phone(phone, country_code)
-        if not re.match(r'^\+[1-9]\d{6,14}$', normalized):
-            raise forms.ValidationError('Unesite validan broj telefona.')
-        return normalized
 
 
 PhoneInputForm = EmailPhoneForm
@@ -125,6 +103,18 @@ class CompleteProfileForm(forms.Form):
         label='Potvrda lozinke',
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Ponovite lozinku'})
     )
+    phone = forms.CharField(
+        max_length=20,
+        required=False,
+        label='Broj telefona',
+        widget=forms.TextInput(attrs={
+            'placeholder': '61 123 456',
+            'class': 'form-control',
+            'inputmode': 'tel',
+            'autocomplete': 'tel',
+        })
+    )
+    country_code = forms.CharField(max_length=5, required=False, initial='+387')
 
     def clean(self):
         cleaned = super().clean()
@@ -135,4 +125,14 @@ class CompleteProfileForm(forms.Form):
         if p1 and len(p1) < 8:
             raise forms.ValidationError({'password': 'Lozinka mora imati najmanje 8 karaktera.'})
         return cleaned
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        if not phone:
+            return None
+        country_code = self.data.get('country_code', '+387') or '+387'
+        normalized = normalize_phone(phone, country_code)
+        if not re.match(r'^\+[1-9]\d{6,14}$', normalized):
+            raise forms.ValidationError('Unesite validan broj telefona.')
+        return normalized
 

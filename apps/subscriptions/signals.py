@@ -11,7 +11,22 @@ def create_subscription_for_new_business(sender, instance, created, **kwargs):
     if not created:
         return
     from apps.subscriptions.models import Subscription
-    if not hasattr(instance, 'subscription'):
+    if hasattr(instance, 'subscription'):
+        return
+
+    owner_already_had_trial = Subscription.objects.filter(
+        business__owner=instance.owner
+    ).exclude(business=instance).exists()
+
+    if owner_already_had_trial:
+        # Probni period je vezan za korisnika, ne za biznis — vlasnik koji
+        # otvara dodatni biznis ne dobija novi besplatni trial.
+        Subscription.objects.create(
+            business=instance,
+            status=Subscription.STATUS_EXPIRED,
+            trial_end=timezone.now(),
+        )
+    else:
         Subscription.objects.create(
             business=instance,
             trial_end=timezone.now() + relativedelta(months=6),

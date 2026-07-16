@@ -59,6 +59,20 @@
     </div>
   </div>
 
+  {% with sub=biz.subscription %}
+  {% if sub and not sub.is_active %}
+  <div class="alert mb-3" style="background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:.85rem 1rem;font-size:.875rem;">
+    ⏰ <strong>Pretplata za {{ biz.name }} je istekla.</strong>
+    Klijenti i dalje mogu vidjeti biznis, ali vi ne možete upravljati terminima dok ne aktivirate pretplatu.
+    <a href="{% url 'payment_choose' slug=biz.slug %}" class="fw-700 ms-1" style="color:#991b1b;">Aktiviraj sada →</a>
+  </div>
+  {% elif sub and sub.status == 'trial' and sub.days_remaining <= 7 %}
+  <div class="alert mb-3" style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:.85rem 1rem;font-size:.875rem;">
+    🎁 <strong>Probni period za {{ biz.name }} ističe za {{ sub.days_remaining }} dan(a).</strong>
+    <a href="{% url 'payment_choose' slug=biz.slug %}" class="fw-700 ms-1" style="color:#92400e;">Aktiviraj pretplatu →</a>
+  </div>
+  {% endif %}
+  {% endwith %}
   {% if not biz.working_hours.exists %}
   <div class="alert mb-3" style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:.85rem 1rem;font-size:.875rem;">
     ⚠️ <strong>Radno vrijeme nije postavljeno.</strong>

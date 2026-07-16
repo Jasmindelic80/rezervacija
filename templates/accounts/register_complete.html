@@ -30,6 +30,14 @@
   .btn-auth:hover { background:#0f4a32; }
 
   .errorlist { list-style:none; padding:0; margin:.25rem 0 0; color:#dc2626; font-size:.82rem; }
+
+  .phone-wrap { display:flex; }
+  .phone-prefix { background:#e8f5ee; border:2px solid #e5e7eb; border-radius:12px 0 0 12px;
+    padding:.875rem 1rem; font-weight:600; color:#1a6b4a; border-right:none; white-space:nowrap; }
+  .phone-prefix select { background:transparent; border:none; outline:none; font-weight:600;
+    color:#1a6b4a; font-size:.95rem; cursor:pointer; max-width:200px; }
+  .phone-wrap .form-control { border-radius:0 12px 12px 0; border-left:none; }
+  .optional-label { font-size:.78rem; color:#9ca3af; font-weight:400; }
 </style>
 {% endblock %}
 
@@ -90,6 +98,25 @@
         <label class="form-label">Potvrda lozinke</label>
         <input type="password" name="password_confirm" class="form-control" placeholder="Ponovite lozinku" required>
         {% if form.password_confirm.errors %}<ul class="errorlist">{% for e in form.password_confirm.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">
+          Broj telefona <span class="optional-label">(opciono)</span>
+        </label>
+        <div class="phone-wrap">
+          <div class="phone-prefix">
+            <select name="country_code">
+              {% for code, label in country_codes %}
+                <option value="{{ code }}" {% if code == '+387' %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <input type="tel" name="phone" class="form-control"
+                 placeholder="61 123 456" inputmode="tel" autocomplete="tel"
+                 value="{{ form.phone.value|default:'' }}">
+        </div>
+        {% if form.phone.errors %}<ul class="errorlist">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
       </div>
 
       <button type="submit" class="btn-auth">Kreiraj nalog ✓</button>

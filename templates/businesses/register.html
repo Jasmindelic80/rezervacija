@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load business_extras %}
 
 {% block title %}Registracija biznisa — BookBiH{% endblock %}
 
@@ -28,7 +29,7 @@
               <option value="">— Odaberi kategoriju —</option>
               {% for cat in categories %}
               <option value="{{ cat.id }}" {% if request.POST.category == cat.id|stringformat:"s" %}selected{% endif %}>
-                {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name }}
+                {% if cat.icon %}{{ cat.icon }} {% endif %}{{ cat.name|translate }}
               </option>
               {% endfor %}
             </select>
@@ -45,9 +46,15 @@
             </div>
           </div>
 
-          <div class="mb-4">
+          <div class="mb-3">
             <label class="form-label fw-600">Adresa <span class="text-danger">*</span></label>
             <input type="text" name="address" class="form-control" placeholder="Ulica i broj" required value="{{ request.POST.address }}">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-600">JIB / ID broj firme <span class="text-danger">*</span></label>
+            <input type="text" name="registration_number" class="form-control" placeholder="npr. 4200000000000" required value="{{ request.POST.registration_number }}">
+            <div class="form-text" style="font-size:.8rem;">Identifikacioni broj firme registrovane u BiH — svaka firma može iskoristiti besplatni probni period samo jednom.</div>
           </div>
 
           <button type="submit" class="btn btn-primary w-100 fw-700 py-2" style="background:var(--primary);border:none;border-radius:10px;">
@@ -57,7 +64,11 @@
       </div>
 
       <p class="text-center text-muted mt-3" style="font-size:0.85rem;">
-        Nakon registracije imaš <strong>6 mjeseci besplatnog trial perioda</strong>.
+        {% if has_business %}
+          Besplatni probni period se koristi samo jednom po korisniku — ovaj biznis kreće direktno na pretplatu.
+        {% else %}
+          Nakon registracije imaš <strong>6 mjeseci besplatnog trial perioda</strong>.
+        {% endif %}
       </p>
 
     </div>

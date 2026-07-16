@@ -50,6 +50,12 @@ def provider_dashboard(request):
         start_datetime__date=today,
     ).select_related('client', 'service', 'staff').order_by('start_datetime')
 
+    for biz in businesses:
+        try:
+            biz.subscription.sync_status()
+        except Exception:
+            pass
+
     ctx = _provider_context(request)
     ctx.update({
         'businesses': businesses,

@@ -52,6 +52,10 @@ python manage.py migrate
 echo "🗂️  Učitavanje BiH kategorija..."
 python manage.py loaddata fixtures/categories_bih.json
 
+# 6b. Kompajliranje prijevoda
+echo "🌐 Kompajliranje prijevoda..."
+python manage.py compilemessages
+
 # 7. Static fajlovi
 echo "🎨 Prikupljanje static fajlova..."
 python manage.py collectstatic --noinput -v 0
