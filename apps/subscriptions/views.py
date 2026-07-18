@@ -195,11 +195,13 @@ def payment_paypal_capture(request, payment_id):
         result = capture_order(token)
         status = result.get('status')
         if status == 'COMPLETED':
-            # Provjeri da je naplaćeni iznos ispravan
+            # Provjeri da je naplaćeni iznos ispravan (cijena je u BAM, PayPal naplaćuje u PAYPAL_CURRENCY)
             try:
+                from .paypal import convert_amount
                 captures = result['purchase_units'][0]['payments']['captures']
                 captured_value = Decimal(captures[0]['amount']['value'])
-                if captured_value < payment.amount:
+                expected_value = convert_amount(payment.amount)
+                if captured_value < expected_value:
                     messages.error(request, 'PayPal iznos ne odgovara. Kontaktirajte podršku.')
                     return redirect('subscription_dashboard')
             except (KeyError, IndexError, Exception):

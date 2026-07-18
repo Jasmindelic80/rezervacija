@@ -223,6 +223,7 @@ SUBSCRIPTION_ANNUAL_PRICE = env.float('SUBSCRIPTION_ANNUAL_PRICE', default=200.0
 PAYPAL_MODE = env('PAYPAL_MODE', default='sandbox')  # 'sandbox' | 'live'
 PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='')
 PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_CURRENCY = env('PAYPAL_CURRENCY', default='BAM')
 
 # Bankovni podaci za uplate
 BANK_NAME = env('BANK_NAME', default='Raiffeisen Bank d.d. BiH')
