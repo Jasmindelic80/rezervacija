@@ -280,7 +280,9 @@ def register_business(request):
         registration_number = request.POST.get('registration_number', '').strip()
 
         if name and city and phone and registration_number:
-            if Business.objects.filter(registration_number=registration_number).exists():
+            if not (registration_number.isdigit() and len(registration_number) == 13):
+                messages.error(request, 'JIB/ID broj firme mora sadržavati tačno 13 brojeva.')
+            elif Business.objects.filter(registration_number=registration_number).exists():
                 messages.error(
                     request,
                     'Firma sa ovim JIB/ID brojem je već registrovana na BookBiH. '

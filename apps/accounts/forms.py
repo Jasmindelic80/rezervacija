@@ -105,7 +105,7 @@ class CompleteProfileForm(forms.Form):
     )
     phone = forms.CharField(
         max_length=20,
-        required=False,
+        required=True,
         label='Broj telefona',
         widget=forms.TextInput(attrs={
             'placeholder': '61 123 456',
@@ -129,7 +129,7 @@ class CompleteProfileForm(forms.Form):
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
         if not phone:
-            return None
+            raise forms.ValidationError('Broj mobitela je obavezan.')
         country_code = self.data.get('country_code', '+387') or '+387'
         normalized = normalize_phone(phone, country_code)
         if not re.match(r'^\+[1-9]\d{6,14}$', normalized):

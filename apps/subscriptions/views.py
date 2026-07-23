@@ -223,10 +223,10 @@ def payment_paypal_capture(request, payment_id):
     return redirect('subscription_dashboard')
 
 
-def subscription_expired(request):
+def subscription_expired(request, slug=None):
     business = sub = None
     if request.user.is_authenticated:
-        business, sub = _get_subscription(request)
+        business, sub = _get_subscription(request, slug)
         if sub:
             sub.sync_status()
 

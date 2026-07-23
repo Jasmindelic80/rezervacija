@@ -102,7 +102,7 @@
 
       <div class="mb-4">
         <label class="form-label">
-          Broj telefona <span class="optional-label">(opciono)</span>
+          Broj telefona <span class="text-danger">*</span>
         </label>
         <div class="phone-wrap">
           <div class="phone-prefix">
@@ -114,7 +114,7 @@
           </div>
           <input type="tel" name="phone" class="form-control"
                  placeholder="61 123 456" inputmode="tel" autocomplete="tel"
-                 value="{{ form.phone.value|default:'' }}">
+                 value="{{ form.phone.value|default:'' }}" required>
         </div>
         {% if form.phone.errors %}<ul class="errorlist">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
       </div>

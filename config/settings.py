@@ -24,7 +24,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
     # Third-party
     'crispy_forms',
     'crispy_bootstrap5',
@@ -44,9 +43,12 @@ INSTALLED_APPS = [
     'apps.appointments.apps.AppointmentsConfig',
     'apps.notifications.apps.NotificationsConfig',
     'apps.subscriptions.apps.SubscriptionsConfig',
+    'django.contrib.sitemaps',
+    'django.contrib.sites',
 ]
 
 SITE_ID = 1
+USE_HTTPS = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

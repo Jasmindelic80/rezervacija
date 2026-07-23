@@ -53,8 +53,12 @@
 
           <div class="mb-4">
             <label class="form-label fw-600">JIB / ID broj firme <span class="text-danger">*</span></label>
-            <input type="text" name="registration_number" class="form-control" placeholder="npr. 4200000000000" required value="{{ request.POST.registration_number }}">
-            <div class="form-text" style="font-size:.8rem;">Identifikacioni broj firme registrovane u BiH — svaka firma može iskoristiti besplatni probni period samo jednom.</div>
+            <input type="text" name="registration_number" class="form-control" placeholder="npr. 4200000000000" required
+                   inputmode="numeric" pattern="\d{13}" minlength="13" maxlength="13"
+                   title="JIB/ID broj firme mora sadržavati tačno 13 brojeva."
+                   value="{{ request.POST.registration_number }}">
+            <div class="form-text" style="font-size:.8rem;">Identifikacioni broj firme registrovane u BiH (13 brojeva) — svaka firma može iskoristiti besplatni probni period samo jednom.</div>
+            <div class="form-text text-danger fw-600" style="font-size:.8rem;">Napomena: uneseni ID broj se provjerava u registru firmi.</div>
           </div>
 
           <button type="submit" class="btn btn-primary w-100 fw-700 py-2" style="background:var(--primary);border:none;border-radius:10px;">
