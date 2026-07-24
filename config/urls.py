@@ -18,11 +18,16 @@ sitemaps = {
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path('', include('apps.businesses.urls')),
     path('', include('apps.accounts.urls')),
     path('termin/', include('apps.appointments.urls')),
     path('profil/', include('apps.notifications.urls')),
+    path('pretplata/', include('apps.subscriptions.urls')),
     path('i18n/', include('django.conf.urls.i18n')),
+
+    path('impressum/', TemplateView.as_view(template_name='legal/impressum.html'), name='impressum'),
+    path('privatnost/', TemplateView.as_view(template_name='legal/privacy.html'), name='privacy'),
 
     path('sitemap.xml', index, {'sitemaps': sitemaps},
          name='django.contrib.sitemaps.views.index'),
@@ -34,6 +39,9 @@ urlpatterns = [
         content_type='text/plain'
     )),
 ]
+
+if 'rosetta' in settings.INSTALLED_APPS:
+    urlpatterns += [path('rosetta/', include('rosetta.urls'))]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
