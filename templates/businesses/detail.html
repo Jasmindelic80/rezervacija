@@ -2,7 +2,38 @@
 {% load business_extras %}
 {% block title %}{{ business.name }} — BookBiH{% endblock %}
 
+{% block meta_description %}{{ business.name }} — Online rezervacija termina u {{ business.city }}. {{ business.description|truncatechars:150 }}{% endblock %}
+
+{% block og_title %}{{ business.name }} — BookBiH{% endblock %}
+
+{% block og_description %}Rezervišite termin kod {{ business.name }} u {{ business.city }} online. {{ business.category.name }} usluge.{% endblock %}
+
+{% block og_image %}{% if business.logo %}{{ request.scheme }}://{{ request.get_host }}{{ business.logo.url }}{% else %}https://bookbih.ba/static/img/og-image.jpg{% endif %}{% endblock %}
+
 {% block extra_css %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "{{ business.name }}",
+  "description": "{{ business.description|truncatechars:200 }}",
+  "url": "https://bookbih.ba/biznis/{{ business.slug }}/",
+  "telephone": "{{ business.phone }}",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ business.address }}",
+    "addressLocality": "{{ business.city }}",
+    "addressCountry": "BA"
+  }
+  {% if business.average_rating %},
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ business.average_rating|floatformat:1 }}",
+    "reviewCount": "{{ business.review_count }}"
+  }
+  {% endif %}
+}
+</script>
 <style>
   .hero-cover {
     background: linear-gradient(135deg, #1a6b4a, #0f4a32);
