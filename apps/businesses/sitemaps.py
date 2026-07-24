@@ -30,7 +30,7 @@ class BusinessSitemap(Sitemap):
         return Business.objects.filter(is_active=True)
 
     def location(self, obj):
-        return f'/biznis/{obj.slug}/'
+        return reverse('business_detail', kwargs={'slug': obj.slug})
 
     def lastmod(self, obj):
         return obj.updated_at
@@ -45,4 +45,4 @@ class CategorySitemap(Sitemap):
         return Category.objects.all()
 
     def location(self, obj):
-        return f'/kategorija/{obj.slug}/'
+        return reverse('category', kwargs={'slug': obj.slug})
