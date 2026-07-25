@@ -7,7 +7,9 @@ from datetime import date, datetime, timedelta
 import math
 import json
 
-from .models import Business, Category
+from .models import Business, Category, Review
+from .forms import ReviewForm
+from apps.appointments.models import Appointment
 from apps.services.models import Service
 from apps.availability.utils import get_available_slots, get_next_available_date
 from .city_coords import CITY_COORDS, fold_city_name, lookup_city_coords as _lookup_city_coords
@@ -151,6 +153,15 @@ def business_detail(request, slug):
     if first_service:
         next_date, next_slot = get_next_available_date(business, first_service)
 
+    can_review = False
+    already_reviewed = False
+    if request.user.is_authenticated:
+        already_reviewed = Review.objects.filter(business=business, client=request.user).exists()
+        if not already_reviewed:
+            can_review = Appointment.objects.filter(
+                business=business, client=request.user, status=Appointment.STATUS_COMPLETED
+            ).exists()
+
     context = {
         'business': business,
         'services': services,
@@ -159,8 +170,40 @@ def business_detail(request, slug):
         'next_available_date': next_date,
         'next_available_slot': next_slot,
         'today': date.today(),
+        'can_review': can_review,
+        'already_reviewed': already_reviewed,
     }
     return render(request, 'businesses/detail.html', context)
+
+
+@login_required
+def add_review(request, slug):
+    business = get_object_or_404(Business, slug=slug, is_active=True)
+
+    if Review.objects.filter(business=business, client=request.user).exists():
+        messages.info(request, 'Već ste ostavili recenziju za ovaj biznis.')
+        return redirect('business_detail', slug=slug)
+
+    has_completed_appointment = Appointment.objects.filter(
+        business=business, client=request.user, status=Appointment.STATUS_COMPLETED
+    ).exists()
+    if not has_completed_appointment:
+        messages.error(request, 'Recenziju možete ostaviti samo nakon završenog termina.')
+        return redirect('business_detail', slug=slug)
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.business = business
+            review.client = request.user
+            review.save()
+            messages.success(request, 'Hvala vam na recenziji!')
+            return redirect('business_detail', slug=slug)
+    else:
+        form = ReviewForm()
+
+    return render(request, 'businesses/add_review.html', {'business': business, 'form': form})
 
 
 def available_slots_api(request):

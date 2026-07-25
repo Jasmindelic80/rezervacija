@@ -9,11 +9,13 @@ from apps.businesses.sitemaps import (
     BusinessSitemap,
     CategorySitemap,
 )
+from apps.blog.sitemaps import BlogPostSitemap
 
 sitemaps = {
     'static': StaticViewSitemap,
     'businesses': BusinessSitemap,
     'categories': CategorySitemap,
+    'blog': BlogPostSitemap,
 }
 
 urlpatterns = [
@@ -24,6 +26,7 @@ urlpatterns = [
     path('termin/', include('apps.appointments.urls')),
     path('profil/', include('apps.notifications.urls')),
     path('pretplata/', include('apps.subscriptions.urls')),
+    path('blog/', include('apps.blog.urls')),
     path('i18n/', include('django.conf.urls.i18n')),
 
     path('impressum/', TemplateView.as_view(template_name='legal/impressum.html'), name='impressum'),

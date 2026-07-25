@@ -15,6 +15,7 @@ class StaticViewSitemap(Sitemap):
             'register',
             'login',
             'register_business',
+            'blog_list',
         ]
 
     def location(self, item):
