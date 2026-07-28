@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ post.title }} — BookBiH Blog{% endblock %}
+{% block meta_description %}{{ post.excerpt|default:post.content|striptags|truncatechars:150 }}{% endblock %}
+{% block og_title %}{{ post.title }} — BookBiH Blog{% endblock %}
+{% block og_description %}{{ post.excerpt|default:post.content|striptags|truncatechars:150 }}{% endblock %}
+{% block og_image %}{% if post.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ post.cover_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}/static/img/og-image.jpg{% endif %}{% endblock %}
+
+{% block extra_css %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ post.title|escapejs }}",
+  "datePublished": "{{ post.published_at|date:'c' }}",
+  "dateModified": "{{ post.updated_at|date:'c' }}",
+  "author": {"@type": "Person", "name": "{{ post.author|default:'BookBiH' }}"}
+}
+</script>
+<style>
+  .post-hero { padding: 2rem 0 1rem; }
+  .post-hero .cat { font-size: .8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+  .post-hero h1 { font-weight: 800; font-size: 2rem; margin: .4rem 0; }
+  .post-hero .meta { color: #9ca3af; font-size: .9rem; }
+  .post-cover { width: 100%; max-height: 420px; object-fit: cover; border-radius: 14px; margin-bottom: 1.5rem; }
+  .post-body { font-size: 1.05rem; line-height: 1.75; max-width: 760px; }
+  .post-body img { max-width: 100%; border-radius: 10px; }
+  .related { margin-top: 3rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container post-hero">
+  <a href="{% url 'blog_list' %}" class="text-decoration-none">&larr; {% trans "Nazad na blog" %}</a>
+  {% if post.category %}<div class="cat mt-3">{{ post.category.name }}</div>{% endif %}
+  <h1>{{ post.title }}</h1>
+  <div class="meta">{{ post.published_at|date:"d.m.Y." }}{% if post.author %} · {{ post.author.get_full_name|default:post.author.username }}{% endif %}</div>
+</div>
+
+<div class="container">
+  {% if post.cover_image %}
+    <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="post-cover">
+  {% endif %}
+  <div class="post-body">
+    {{ post.content|safe }}
+  </div>
+
+  {% if related_posts %}
+  <div class="related">
+    <h4 class="mb-3">{% trans "Slično" %}</h4>
+    <div class="row g-3">
+      {% for rp in related_posts %}
+      <div class="col-md-4">
+        <a href="{% url 'blog_detail' rp.slug %}" class="text-decoration-none">
+          <div class="fw-bold">{{ rp.title }}</div>
+          <div class="text-muted small">{{ rp.published_at|date:"d.m.Y." }}</div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

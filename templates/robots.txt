@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /profil/
 Disallow: /termin/
 
-Sitemap: https://bookbih.ba/sitemap.xml
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

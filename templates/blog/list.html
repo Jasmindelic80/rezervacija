@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Blog — BookBiH{% endblock %}
+{% block meta_description %}Savjeti, novosti i vodiči o online rezervaciji termina, upravljanju biznisom i digitalizaciji usluga u BiH.{% endblock %}
+{% block og_title %}Blog — BookBiH{% endblock %}
+{% block og_description %}Savjeti, novosti i vodiči o online rezervaciji termina i digitalizaciji usluga u BiH.{% endblock %}
+
+{% block extra_css %}
+<style>
+  .blog-hero { padding: 2.5rem 0 1.5rem; }
+  .blog-hero h1 { font-weight: 800; font-size: 2rem; }
+  .cat-filter { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .cat-filter a {
+    border: 1.5px solid var(--border); border-radius: 20px; padding: .35rem .9rem;
+    font-size: .85rem; font-weight: 600; color: var(--text); text-decoration: none;
+  }
+  .cat-filter a.active, .cat-filter a:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+  .post-card {
+    background: white; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06); height: 100%; display: flex; flex-direction: column;
+    text-decoration: none; color: inherit; transition: transform .15s;
+  }
+  .post-card:hover { transform: translateY(-3px); color: inherit; }
+  .post-card img { width: 100%; height: 180px; object-fit: cover; }
+  .post-card .no-cover { width: 100%; height: 180px; background: var(--primary-light); }
+  .post-card .body { padding: 1.1rem; display: flex; flex-direction: column; flex: 1; }
+  .post-card .cat { font-size: .75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; }
+  .post-card h3 { font-size: 1.1rem; font-weight: 700; margin: .35rem 0; }
+  .post-card p { font-size: .9rem; color: #6b7280; flex: 1; }
+  .post-card .date { font-size: .8rem; color: #9ca3af; margin-top: .5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container blog-hero">
+  <h1>{% trans "Blog" %}</h1>
+  <p class="text-muted">{% trans "Savjeti i novosti o online zakazivanju termina u BiH." %}</p>
+</div>
+
+<div class="container">
+  {% if categories %}
+  <div class="cat-filter">
+    <a href="{% url 'blog_list' %}" class="{% if not active_category %}active{% endif %}">{% trans "Sve" %}</a>
+    {% for cat in categories %}
+      <a href="?kategorija={{ cat.slug }}" class="{% if active_category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    {% for post in page_obj %}
+    <div class="col-md-4">
+      <a href="{% url 'blog_detail' post.slug %}" class="post-card">
+        {% if post.cover_image %}
+          <img src="{{ post.cover_image.url }}" alt="{{ post.title }}">
+        {% else %}
+          <div class="no-cover"></div>
+        {% endif %}
+        <div class="body">
+          {% if post.category %}<span class="cat">{{ post.category.name }}</span>{% endif %}
+          <h3>{{ post.title }}</h3>
+          <p>{{ post.excerpt|default:post.content|striptags|truncatechars:120 }}</p>
+          <div class="date">{{ post.published_at|date:"d.m.Y." }}</div>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <p class="text-muted">{% trans "Trenutno nema objavljenih članaka." %}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if active_category %}&kategorija={{ active_category }}{% endif %}">&laquo;</a></li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+          <a class="page-link" href="?page={{ num }}{% if active_category %}&kategorija={{ active_category }}{% endif %}">{{ num }}</a>
+        </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if active_category %}&kategorija={{ active_category }}{% endif %}">&raquo;</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

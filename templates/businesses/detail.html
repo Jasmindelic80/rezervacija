@@ -8,7 +8,7 @@
 
 {% block og_description %}Rezervišite termin kod {{ business.name }} u {{ business.city }} online. {{ business.category.name }} usluge.{% endblock %}
 
-{% block og_image %}{% if business.logo %}{{ request.scheme }}://{{ request.get_host }}{{ business.logo.url }}{% else %}https://bookbih.ba/static/img/og-image.jpg{% endif %}{% endblock %}
+{% block og_image %}{% if business.logo %}{{ request.scheme }}://{{ request.get_host }}{{ business.logo.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}/static/img/og-image.jpg{% endif %}{% endblock %}
 
 {% block extra_css %}
 <script type="application/ld+json">
@@ -223,26 +223,33 @@
       {% endif %}
 
       <!-- Recenzije -->
-      {% if reviews %}
+      {% if reviews or can_review or already_reviewed %}
       <div class="info-card">
-        <h3>
-          Recenzije
-          {% if business.average_rating %}
-            <span class="rating-stars ms-2">
-              {% with avg=business.average_rating %}
-                {% if avg >= 1 %}⭐{% endif %}
-                {% if avg >= 2 %}⭐{% endif %}
-                {% if avg >= 3 %}⭐{% endif %}
-                {% if avg >= 4 %}⭐{% endif %}
-                {% if avg >= 5 %}⭐{% endif %}
-              {% endwith %}
-            </span>
-            <span style="font-size:0.85rem;color:#6b7280;font-weight:400">
-              {{ business.average_rating|floatformat:1 }} / 5
-              ({{ business.review_count }} ocjena)
-            </span>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <h3 class="mb-0">
+            Recenzije
+            {% if business.average_rating %}
+              <span class="rating-stars ms-2">
+                {% with avg=business.average_rating %}
+                  {% if avg >= 1 %}⭐{% endif %}
+                  {% if avg >= 2 %}⭐{% endif %}
+                  {% if avg >= 3 %}⭐{% endif %}
+                  {% if avg >= 4 %}⭐{% endif %}
+                  {% if avg >= 5 %}⭐{% endif %}
+                {% endwith %}
+              </span>
+              <span style="font-size:0.85rem;color:#6b7280;font-weight:400">
+                {{ business.average_rating|floatformat:1 }} / 5
+                ({{ business.review_count }} ocjena)
+              </span>
+            {% endif %}
+          </h3>
+          {% if can_review %}
+            <a href="{% url 'add_review' business.slug %}" class="btn btn-sm btn-outline-success">✍️ Ostavi recenziju</a>
+          {% elif already_reviewed %}
+            <span class="text-muted" style="font-size:0.85rem">✓ Ostavili ste recenziju</span>
           {% endif %}
-        </h3>
+        </div>
         {% for review in reviews %}
         <div class="review-card">
           <div class="d-flex justify-content-between">
@@ -256,6 +263,8 @@
           <div class="comment">{{ review.comment }}</div>
           {% endif %}
         </div>
+        {% empty %}
+        <p class="text-muted mb-0" style="font-size:0.875rem">Još nema recenzija za ovaj biznis.</p>
         {% endfor %}
       </div>
       {% endif %}

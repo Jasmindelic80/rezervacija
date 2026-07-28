@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.appointments.apps.AppointmentsConfig',
     'apps.notifications.apps.NotificationsConfig',
     'apps.subscriptions.apps.SubscriptionsConfig',
+    'apps.blog.apps.BlogConfig',
     'django.contrib.sitemaps',
     'django.contrib.sites',
 ]
@@ -77,6 +78,7 @@ TEMPLATES = [{
             'django.template.context_processors.request',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
+            'config.context_processors.site_meta',
         ],
     },
 }]
@@ -165,6 +167,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 SITE_URL = os.getenv('SITE_URL', 'https://bookbih.ba')
+GOOGLE_ANALYTICS_ID = os.getenv('GOOGLE_ANALYTICS_ID', '')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

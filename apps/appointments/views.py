@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from datetime import datetime, date, timedelta
 
-from apps.businesses.models import Business, Staff
+from apps.businesses.models import Business, Staff, Review
 from apps.services.models import Service
 from apps.availability.utils import get_available_slots
 from .models import Appointment
@@ -103,18 +103,27 @@ def appointment_confirm(request, pk):
 def my_appointments(request):
     upcoming = Appointment.objects.filter(
         client=request.user,
-        start_datetime__gte=timezone.now(),
         status__in=[Appointment.STATUS_PENDING, Appointment.STATUS_CONFIRMED]
     ).select_related('business', 'service', 'staff')
 
     past = Appointment.objects.filter(
         client=request.user,
-        start_datetime__lt=timezone.now()
-    ).select_related('business', 'service')[:20]
+        status__in=[
+            Appointment.STATUS_COMPLETED,
+            Appointment.STATUS_CANCELLED_CLIENT,
+            Appointment.STATUS_CANCELLED_BUSINESS,
+            Appointment.STATUS_NO_SHOW,
+        ]
+    ).select_related('business', 'service').order_by('-start_datetime')[:20]
+
+    reviewed_business_ids = set(
+        Review.objects.filter(client=request.user).values_list('business_id', flat=True)
+    )
 
     context = {
         'upcoming': upcoming,
         'past': past,
+        'reviewed_business_ids': reviewed_business_ids,
     }
     return render(request, 'appointments/my_appointments.html', context)
 
