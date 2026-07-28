@@ -81,7 +81,22 @@
       "Bash(sudo rm /etc/nginx/sites-enabled/bookbih)",
       "Bash(sudo systemctl reload nginx)",
       "Bash(git merge *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(bash backup.sh)",
+      "Read(//var/log/**)",
+      "Bash(journalctl -u bookbih.service --no-pager -n 30)",
+      "Bash(sudo -n systemctl restart bookbih-celery.service bookbih-celerybeat.service)",
+      "Bash(xargs -I{} echo {})",
+      "Bash(git status *)",
+      "Read(//root/.ssh/**)",
+      "Bash(apt-get install *)",
+      "Bash(sshpass -V)",
+      "Bash(getent hosts *)",
+      "Bash(timeout 6 bash -c \"echo > /dev/tcp/github.com/443\")",
+      "Bash(timeout 6 bash -c \"echo > /dev/tcp/github.com/22\")",
+      "Bash(pip install *)",
+      "Bash(mkdir *)",
+      "Bash(echo \"grep exit: $?\")"
     ]
   }
 }
