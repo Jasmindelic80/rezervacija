@@ -72,7 +72,16 @@
       "Bash(xargs ls -la)",
       "Bash(git remote *)",
       "Bash(git checkout *)",
-      "Bash(git reset *)"
+      "Bash(git reset *)",
+      "Bash(fc-list)",
+      "Bash(sudo nginx -t)",
+      "Read(//etc/nginx/sites-available/**)",
+      "Read(//etc/nginx/conf.d/**)",
+      "Read(//etc/nginx/**)",
+      "Bash(sudo rm /etc/nginx/sites-enabled/bookbih)",
+      "Bash(sudo systemctl reload nginx)",
+      "Bash(git merge *)",
+      "Bash(git stash *)"
     ]
   }
 }
